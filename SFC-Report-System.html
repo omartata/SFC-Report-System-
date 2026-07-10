@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام التقارير · جمعية أصدقاء السعودية</title>
+<style>
+/* ============================================================
+   SFC Report System — design tokens
+   Grounded in the association's identity: the palm/friendship
+   green from the logo, warm sand paper, ink for text.
+   ============================================================ */
+:root{
+  --green:#3f8f52;          /* SFC primary green */
+  --green-deep:#2c6b3c;
+  --green-soft:#e8f2ea;
+  --green-line:#cfe4d4;
+  --sand:#f6f4ee;           /* paper */
+  --card:#ffffff;
+  --ink:#20302a;
+  --ink-soft:#5c6b63;
+  --gold:#c79a3d;           /* accent for numbers/awards */
+  --blue:#2f6f9f;           /* comms accent */
+  --danger:#c0492f;
+  --line:#e4e6e1;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(32,48,42,.06),0 8px 24px rgba(32,48,42,.06);
+  --font: "Segoe UI", "Tahoma", system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--sand);
+  color:var(--ink);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+body[dir="ltr"]{text-align:left}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+h1,h2,h3{line-height:1.2;font-weight:800}
+
+/* ---------- layout shell ---------- */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:248px;flex-shrink:0;background:var(--green-deep);
+  color:#eaf3ec;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.brand .logo{display:flex;align-items:center;gap:11px}
+.brand .mark{width:38px;height:38px;flex-shrink:0}
+.brand h1{font-size:15px;color:#fff;letter-spacing:.2px}
+.brand .sub{font-size:11px;color:#a9cdb2;margin-top:2px;font-weight:600;letter-spacing:.4px}
+.nav{padding:12px 10px;flex:1}
+.nav .group-label{font-size:10.5px;color:#84b291;text-transform:uppercase;letter-spacing:1px;padding:12px 12px 6px;font-weight:700}
+.nav button{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:inherit;
+  background:transparent;border:0;color:#d3e6d8;padding:9px 12px;
+  border-radius:9px;font-size:13.5px;font-weight:600;margin-bottom:2px;transition:.15s;
+}
+.nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav button.active{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.nav .ico{width:18px;height:18px;flex-shrink:0;opacity:.9}
+.sidebar-foot{padding:14px;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:#9ec3a6}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 26px;display:flex;align-items:center;gap:16px;
+  position:sticky;top:0;z-index:20;
+}
+.topbar .page-title{font-size:19px;font-weight:800}
+.topbar .spacer{flex:1}
+.month-pick{display:flex;align-items:center;gap:8px;background:var(--sand);border:1px solid var(--line);border-radius:10px;padding:5px 10px}
+.month-pick label{font-size:12px;color:var(--ink-soft);font-weight:700}
+.month-pick select{border:0;background:transparent;font-size:13px;font-weight:700;color:var(--ink);outline:none}
+.lang-toggle{display:flex;background:var(--sand);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.lang-toggle button{padding:6px 12px;border:0;background:transparent;font-size:12px;font-weight:700;color:var(--ink-soft)}
+.lang-toggle button.on{background:var(--green);color:#fff}
+.content{padding:26px;max-width:1180px;width:100%;margin:0 auto}
+
+/* ---------- buttons ---------- */
+.btn{border:0;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:700;transition:.15s;display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-deep)}
+.btn-ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green-deep)}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-danger-ghost{background:transparent;color:var(--danger);border:1px solid transparent;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700}
+.btn-danger-ghost:hover{background:#fbeae6}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+
+/* ---------- cards / stats ---------- */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--green)}
+.stat.g::before{background:var(--gold)} .stat.b::before{background:var(--blue)}
+.stat .k{font-size:12px;color:var(--ink-soft);font-weight:700;margin-bottom:6px}
+.stat .v{font-size:30px;font-weight:800;letter-spacing:-.5px}
+.stat .v small{font-size:13px;color:var(--ink-soft);font-weight:600}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:22px;overflow:hidden}
+.panel-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.panel-head h3{font-size:15px}
+.panel-head .count{background:var(--green-soft);color:var(--green-deep);font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:20px}
+.panel-head .spacer{flex:1}
+.panel-body{padding:0}
+.panel-pad{padding:18px}
+
+/* ---------- table ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--green-soft);color:var(--green-deep);font-weight:800;font-size:12px;padding:10px 12px;text-align:inherit;white-space:nowrap;border-bottom:1px solid var(--green-line)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr:hover td{background:#fafbfa}
+.tbl .num{color:var(--ink-soft);font-variant-numeric:tabular-nums;width:38px}
+.tbl .actions{white-space:nowrap;text-align:end;width:1%}
+.chip{display:inline-block;background:var(--green-soft);color:var(--green-deep);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin:1px}
+.chip.b{background:#e7f0f7;color:var(--blue)}
+.chip.g{background:#f6efdb;color:#9a7420}
+.empty{padding:40px 20px;text-align:center;color:var(--ink-soft)}
+.empty svg{opacity:.35;margin-bottom:10px}
+.empty p{font-size:13.5px}
+
+/* ---------- forms ---------- */
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12.5px;font-weight:700;color:var(--ink-soft)}
+.field input,.field select,.field textarea{
+  border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13.5px;
+  background:var(--card);color:var(--ink);outline:none;transition:.15s;width:100%;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-soft)}
+.field textarea{resize:vertical;min-height:64px}
+.form-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+
+/* ---------- modal ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(28,40,34,.5);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:100;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:16px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .18s ease}
+@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.modal-head h3{font-size:16px}
+.modal-head .x{margin-inline-start:auto;background:var(--sand);border:0;width:30px;height:30px;border-radius:8px;font-size:18px;color:var(--ink-soft)}
+.modal-body{padding:22px}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;bottom:22px;inset-inline-end:22px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:11px;font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:.25s;z-index:200;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+.toast.ok{background:var(--green-deep)}
+.toast.err{background:var(--danger)}
+
+/* ---------- page utilities ---------- */
+.page{display:none}
+.page.active{display:block}
+.page-intro{color:var(--ink-soft);font-size:13.5px;margin-bottom:20px;max-width:680px}
+.section-add{display:flex;justify-content:flex-end;margin-bottom:14px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:1000px){.two-col{grid-template-columns:1fr}}
+
+/* ---------- report view (Canva-like) ---------- */
+.report-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.report-toolbar .spacer{flex:1}
+.report-sheet{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);padding:0;overflow:hidden}
+.rep-section{padding:26px 30px;border-bottom:8px solid var(--sand)}
+.rep-section:last-child{border-bottom:0}
+.rep-title{text-align:center;color:var(--green-deep);margin-bottom:4px;font-size:26px}
+.rep-sub{text-align:center;color:var(--ink-soft);font-size:15px;font-weight:700;margin-bottom:20px}
+.rep-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.rep-tbl th{background:var(--green-soft);color:var(--green-deep);border:1px solid var(--green-line);padding:9px;font-weight:800}
+.rep-tbl td{border:1px solid var(--line);padding:9px;text-align:center}
+.rep-empty{text-align:center;color:#b7bdb8;font-size:13px;padding:16px}
+
+/* ---------- responsive ---------- */
+.menu-btn{display:none}
+@media(max-width:860px){
+  .sidebar{position:fixed;inset-inline-start:0;top:0;z-index:60;transform:translateX(-100%);transition:.25s}
+  body[dir="rtl"] .sidebar{transform:translateX(100%)}
+  .sidebar.open{transform:none!important}
+  .menu-btn{display:inline-flex}
+  .form-grid{grid-template-columns:1fr}
+  .content{padding:16px}
+  .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+  .backdrop.open{display:block}
+}
+@media print{
+  .sidebar,.topbar,.report-toolbar,.no-print{display:none!important}
+  .content{padding:0;max-width:none}
+  .report-sheet{border:0;box-shadow:none}
+  .rep-section{page-break-inside:avoid}
+}
+</style>
+
+<style>
+/* ---- cloud additions: login, avatar, status, admin ---- */
+#root{min-height:100vh}
+.setup-needed{max-width:520px;margin:80px auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:34px;box-shadow:var(--shadow)}
+.setup-needed h2{color:var(--green-deep);margin-bottom:10px}
+.setup-needed p{color:var(--ink-soft);font-size:14px;line-height:1.7}
+
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(1200px 600px at 50% -10%, #e8f2ea, var(--sand))}
+.login-card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 60px rgba(32,48,42,.12);
+  width:100%;max-width:400px;padding:34px 30px}
+.login-brand{text-align:center;margin-bottom:24px}
+.login-brand h1{font-size:20px;color:var(--ink);margin-top:12px}
+.login-sub{font-size:10.5px;color:var(--green);font-weight:700;letter-spacing:1.2px;margin-top:6px}
+.login-card .field{margin-bottom:14px}
+.login-btn{width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:6px}
+.login-err{color:var(--danger);font-size:13px;font-weight:600;min-height:18px;text-align:center;margin:4px 0}
+.login-lang{display:flex;gap:8px;justify-content:center;margin-top:18px}
+.login-lang button{background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 14px;font-size:12.5px;font-weight:700;color:var(--ink-soft)}
+.login-lang button.on{background:var(--green);color:#fff;border-color:var(--green)}
+
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.btn-signout{width:100%;background:rgba(255,255,255,.1);color:#eaf3ec;border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:8px;font-size:12.5px;font-weight:700;cursor:pointer}
+.btn-signout:hover{background:rgba(255,255,255,.18)}
+
+.locked-banner{background:#f6efdb;border:1px solid #e6d09a;color:#8a6a1e;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-weight:700;font-size:13.5px}
+.status-meta{display:flex;gap:16px;font-size:12px;color:var(--ink-soft);margin-bottom:14px;flex-wrap:wrap}
+.pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:800}
+.pill-draft{background:#eef0ed;color:#5c6b63}
+.pill-submitted{background:#f6efdb;color:#9a7420}
+.pill-approved{background:var(--green-soft);color:var(--green-deep)}
+</style>
+
+</head>
+<body dir="rtl">
+<div id="root"></div>
+<div class="modal-bg" id="modalBg"><div class="modal">
+  <div class="modal-head"><h3 id="modalTitle"></h3><button class="x" onclick="closeModal()">×</button></div>
+  <div class="modal-body" id="modalBody"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =====================================================================
+   SFC REPORT SYSTEM — CLOUD (Supabase)
+   Reuses the Stage-1 section schema, i18n, dashboard and report views,
+   but the data layer now talks to Supabase, with auth + roles + audit.
+   ===================================================================== */
+
+/* ------------ 0. CONFIGURE THESE TWO LINES (see setup guide) ------------ */
+const SUPABASE_URL  = "https://htbqzqgagwjuprmqhcbc.supabase.co";
+const SUPABASE_ANON = "sb_publishable_Gp0gJ5VxDVfSl8uAB96cVg__jq7p7_-";
+/* ----------------------------------------------------------------------- */
+
+let sb = null;
+let SESSION = null;          // supabase session
+let ME = { id:null, name:'', role:'staff' };
+
+/* ---------------- i18n (same as Stage 1 + auth strings) ---------------- */
+const T = {
+  ar:{
+    brand:"أصدقاء السعودية", foot:"نظام التقارير · السحابي",
+    month:"الشهر", allMonths:"كل الأشهر",
+    nav_main:"عام", nav_data:"إدخال البيانات", nav_out:"المخرجات", nav_admin:"الإدارة",
+    dashboard:"لوحة المعلومات", daily:"التسويق اليومي",
+    letters:"الخطابات", meetings:"الاجتماعات", media:"الإعلام الداخلي",
+    finance:"الموارد المالية", initiatives:"المبادرات والمشاريع",
+    quality:"الجودة والجوائز", report:"التقرير الشهري",
+    users:"المستخدمون", audit:"سجل العمليات",
+    add:"إضافة", edit:"تعديل", save:"حفظ", cancel:"إلغاء", del:"حذف",
+    confirmDel:"حذف هذا السجل؟", saved:"تم الحفظ", deleted:"تم الحذف",
+    empty:"لا توجد سجلات بعد — ابدأ بالإضافة",
+    print:"طباعة / PDF", exportCsv:"تصدير CSV", total:"الإجمالي",
+    d_activities:"إجمالي الأنشطة", d_reach:"الجهات المُرسل إليها",
+    d_letters:"الخطابات الصادرة", d_meetings:"الاجتماعات",
+    d_sales:"المبيعات (ريال)", d_benef:"المستفيدون",
+    d_byChannel:"النشاط حسب القناة", d_byProgram:"النشاط حسب البرنامج",
+    d_recent:"أحدث الأنشطة", by:"بواسطة",
+    f_date:"التاريخ", f_program:"البرنامج", f_recipient:"الجهة المُرسل إليها",
+    f_count:"العدد", f_channel:"طريقة الإرسال", f_contact:"الجوال / الإيميل", f_notes:"الملاحظات",
+    f_letterCat:"فئة الخطاب", f_letterDetail:"تفاصيل الخطاب", f_entity:"الجهة",
+    f_place:"المكان", f_meetType:"فئة الاجتماع", f_attendance:"عدد الحضور",
+    f_hours:"عدد الساعات", f_details:"التفاصيل", f_platform:"المنصة", f_posts:"عدد المنشورات",
+    f_finType:"النوع", f_projName:"اسم المشروع", f_forEntity:"الجهة المقدمة له",
+    f_partner:"اسم الشريك", f_amount:"المبلغ", f_saleType:"نوع المبيعات", f_price:"السعر",
+    f_item:"البند", f_value:"العدد/القيمة", f_initType:"النوع", f_executor:"المنفذ",
+    f_category:"الفئة", f_partType:"نوع المشاركة",
+    ft_grant:"مشاريع الجهات المانحة", ft_partner:"دعم الشركاء",
+    ft_sale:"المبيعات", ft_metric:"مؤشر (مستفيدون…)",
+    it_design:"تصميم / مجتمع الابتكار", it_metric:"مؤشر المبادرات",
+    r_admin:"الشؤون الإدارية", r_meetings:"الإجتماعات الداخلية و الخارجية",
+    r_letters:"الخطابات", r_comm:"الاتصال والتسويق", r_commLocal:"الاتصال المحلي",
+    r_commIntl:"الاتصال الدولي", r_media:"الإعلام (الداخلي)",
+    r_fin:"تنمية الموارد المالية", r_initiatives:"المبادرات والمشاريع",
+    r_quality:"الجودة والتميز المؤسسي", r_qualitySub:"(المسابقات والجوائز)",
+    r_grants:"مشاريع الجهات المانحة", r_partners:"دعم الشركاء", r_sales:"المبيعات",
+    reportFor:"التقرير الشهري لشهر", pickMonthReport:"اختر شهراً محدداً من الأعلى لعرض تقريره",
+    // auth + status
+    login:"تسجيل الدخول", email:"البريد الإلكتروني", password:"كلمة المرور",
+    signIn:"دخول", signOut:"خروج", loginErr:"بريد أو كلمة مرور غير صحيحة", loginTitle:"نظام تقارير الجمعية",
+    loading:"جارٍ التحميل…", role_admin:"مسؤول", role_staff:"موظف",
+    st_draft:"مسودة", st_submitted:"مُقدَّم", st_approved:"معتمد",
+    submitReport:"تقديم التقرير", approveReport:"اعتماد وقفل", reopenReport:"إعادة فتح",
+    lockedMsg:"هذا الشهر معتمد ومقفل — لا يمكن التعديل",
+    statusLabel:"حالة التقرير", submittedBy:"قُدِّم بواسطة", approvedBy:"اعتُمِد بواسطة",
+    onlyAdmin:"للمسؤول فقط", notYours:"يمكنك تعديل سجلاتك فقط",
+    adminUsers:"إدارة المستخدمين", makeAdmin:"ترقية لمسؤول", makeStaff:"تحويل لموظف",
+    auditLog:"سجل من فعل ماذا ومتى", actor:"المستخدم", action:"العملية", when:"التاريخ",
+    a_insert:"إضافة", a_update:"تعديل", a_delete:"حذف", a_submit:"تقديم تقرير",
+    a_approve:"اعتماد", a_reopen:"إعادة فتح",
+  },
+  en:{
+    brand:"Saudi Friendship", foot:"Report System · Cloud",
+    month:"Month", allMonths:"All months",
+    nav_main:"General", nav_data:"Data entry", nav_out:"Outputs", nav_admin:"Admin",
+    dashboard:"Dashboard", daily:"Daily Marketing",
+    letters:"Letters", meetings:"Meetings", media:"Internal Media",
+    finance:"Financial Resources", initiatives:"Initiatives & Projects",
+    quality:"Quality & Awards", report:"Monthly Report",
+    users:"Users", audit:"Audit Log",
+    add:"Add", edit:"Edit", save:"Save", cancel:"Cancel", del:"Delete",
+    confirmDel:"Delete this record?", saved:"Saved", deleted:"Deleted",
+    empty:"No records yet — start by adding one",
+    print:"Print / PDF", exportCsv:"Export CSV", total:"Total",
+    d_activities:"Total activities", d_reach:"Recipients reached",
+    d_letters:"Letters issued", d_meetings:"Meetings",
+    d_sales:"Sales (SAR)", d_benef:"Beneficiaries",
+    d_byChannel:"Activity by channel", d_byProgram:"Activity by program",
+    d_recent:"Recent activity", by:"by",
+    f_date:"Date", f_program:"Program", f_recipient:"Recipient",
+    f_count:"Count", f_channel:"Channel", f_contact:"Phone / Email", f_notes:"Notes",
+    f_letterCat:"Letter type", f_letterDetail:"Letter details", f_entity:"Entity",
+    f_place:"Place", f_meetType:"Meeting type", f_attendance:"Attendance",
+    f_hours:"Hours", f_details:"Details", f_platform:"Platform", f_posts:"Posts",
+    f_finType:"Type", f_projName:"Project name", f_forEntity:"Provided to",
+    f_partner:"Partner", f_amount:"Amount", f_saleType:"Sale item", f_price:"Price",
+    f_item:"Item", f_value:"Count/Value", f_initType:"Type", f_executor:"Executor",
+    f_category:"Category", f_partType:"Participation type",
+    ft_grant:"Grant projects", ft_partner:"Partner support",
+    ft_sale:"Sales", ft_metric:"Metric (beneficiaries…)",
+    it_design:"Design / Innovation", it_metric:"Initiative metric",
+    r_admin:"Administrative Affairs", r_meetings:"Internal & External Meetings",
+    r_letters:"Letters", r_comm:"Communication & Marketing", r_commLocal:"Local Communication",
+    r_commIntl:"International Communication", r_media:"Media (Internal)",
+    r_fin:"Financial Resource Development", r_initiatives:"Initiatives & Projects",
+    r_quality:"Institutional Quality & Excellence", r_qualitySub:"(Competitions & Awards)",
+    r_grants:"Grant Projects", r_partners:"Partner Support", r_sales:"Sales",
+    reportFor:"Monthly Report —", pickMonthReport:"Pick a specific month above to view its report",
+    login:"Sign in", email:"Email", password:"Password",
+    signIn:"Sign in", signOut:"Sign out", loginErr:"Wrong email or password", loginTitle:"SFC Report System",
+    loading:"Loading…", role_admin:"Admin", role_staff:"Staff",
+    st_draft:"Draft", st_submitted:"Submitted", st_approved:"Approved",
+    submitReport:"Submit report", approveReport:"Approve & lock", reopenReport:"Reopen",
+    lockedMsg:"This month is approved and locked — editing disabled",
+    statusLabel:"Report status", submittedBy:"Submitted by", approvedBy:"Approved by",
+    onlyAdmin:"Admin only", notYours:"You can edit only your own records",
+    adminUsers:"Manage users", makeAdmin:"Make admin", makeStaff:"Make staff",
+    auditLog:"Who did what, and when", actor:"User", action:"Action", when:"When",
+    a_insert:"Added", a_update:"Edited", a_delete:"Deleted", a_submit:"Submitted report",
+    a_approve:"Approved", a_reopen:"Reopened",
+  }
+};
+let LANG = localStorage.getItem('sfc_lang') || 'ar';
+const t = k => (T[LANG][k] ?? k);
+
+const PROGRAMS = ["Saudi Cultural Camp","Cultural Tours for Schools","English Café",
+  "Escape to the Oasis","Discover Arabia","CSR","Saudi Int'l Friendship Day",
+  "National Day greeting","Ain Project","Culture Ambassadors","Other"];
+const CHANNELS = ["WhatsApp","Instagram","Email","LinkedIn","TikTok","Twitter/X","YouTube","Other"];
+
+/* month helpers */
+const monthOf = iso => (iso||'').slice(0,7);
+const fmtMonth = ym => { if(!ym) return ''; const [y,m]=ym.split('-');
+  const a=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const e=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return (LANG==='ar'?a:e)[+m-1]+' '+y; };
+
+/* ---------------- DATA LAYER (Supabase) ----------------
+   In-memory CACHE mirrors the DB for synchronous rendering; every
+   mutation writes to Supabase then refreshes the cache. entries table
+   stores {section, entry_date, data{}}, so we flatten to Stage-1 shape. */
+const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[], status:{} };
+
+const DB = {
+  all(tbl){ return CACHE[tbl]||[]; },
+  async refresh(){
+    const { data, error } = await sb.from('entries').select('*').order('entry_date',{ascending:false});
+    if(error){ console.error(error); toast(error.message,'err'); return; }
+    for(const k of ['daily','letters','meetings','media','finance','initiatives','quality']) CACHE[k]=[];
+    (data||[]).forEach(row=>{
+      const rec = { id:row.id, date:row.entry_date, _by:row.created_name||'', _byId:row.created_by, ...row.data };
+      if(CACHE[row.section]) CACHE[row.section].push(rec);
+    });
+    // status
+    const st = await sb.from('report_status').select('*');
+    CACHE.status={}; (st.data||[]).forEach(s=>CACHE.status[s.month]=s);
+  },
+  async upsert(tbl,rec){
+    const {id,date,_by,_byId,...data}=rec;
+    if(id){
+      const { error } = await sb.from('entries').update({entry_date:date,data,updated_at:new Date().toISOString()}).eq('id',id);
+      if(error) return toast(error.message,'err'),false;
+      await audit('update',tbl,id);
+    } else {
+      const { data:ins, error } = await sb.from('entries').insert({
+        section:tbl, entry_date:date, data, created_by:ME.id, created_name:ME.name
+      }).select().single();
+      if(error) return toast(error.message,'err'),false;
+      await audit('insert',tbl,ins.id);
+    }
+    await DB.refresh(); return true;
+  },
+  async remove(tbl,id){
+    const { error } = await sb.from('entries').delete().eq('id',id);
+    if(error) return toast(error.message,'err'),false;
+    await audit('delete',tbl,id); await DB.refresh(); return true;
+  },
+  status(month){ return CACHE.status[month]?.status || 'draft'; },
+  statusRec(month){ return CACHE.status[month]||null; },
+  async setStatus(month,status){
+    const patch = {month,status,updated_at:new Date().toISOString()};
+    if(status==='submitted'){ patch.submitted_by=ME.id; patch.submitted_at=new Date().toISOString(); }
+    if(status==='approved'){ patch.approved_by=ME.id; patch.approved_at=new Date().toISOString(); }
+    const { error } = await sb.from('report_status').upsert(patch,{onConflict:'month'});
+    if(error) return toast(error.message,'err'),false;
+    await audit(status==='submitted'?'submit':status==='approved'?'approve':'reopen',null,null,month);
+    await DB.refresh(); return true;
+  }
+};
+async function audit(action,section,entryId,detail){
+  try{ await sb.from('audit_log').insert({actor_id:ME.id,actor_name:ME.name,action,section,entry_id:entryId||null,detail:detail||null}); }
+  catch(e){ /* non-fatal */ }
+}
+
+let CURRENT_MONTH = localStorage.getItem('sfc_month') || '';
+const inMonth = rows => CURRENT_MONTH ? rows.filter(r=>monthOf(r.date)===CURRENT_MONTH) : rows;
+function allMonths(){
+  const s=new Set();
+  ['daily','letters','meetings','media','finance','initiatives','quality']
+    .forEach(k=>CACHE[k].forEach(r=>{if(r.date)s.add(monthOf(r.date));}));
+  Object.keys(CACHE.status).forEach(m=>s.add(m));
+  return [...s].sort().reverse();
+}
+const isLocked = () => CURRENT_MONTH && DB.status(CURRENT_MONTH)==='approved';
+const canEditRow = r => ME.role==='admin' || r._byId===ME.id;
+
+console.log('cloud core loaded');
+const SECTIONS = {
+  daily:{
+    icon:'📣', tableCols:['date','program','recipient','count','channel','contact','notes'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'program',l:'f_program',type:'select',opts:PROGRAMS,req:true},
+      {k:'recipient',l:'f_recipient',type:'text',req:true},
+      {k:'count',l:'f_count',type:'number'},
+      {k:'channel',l:'f_channel',type:'multi',opts:CHANNELS},
+      {k:'contact',l:'f_contact',type:'text'},
+      {k:'notes',l:'f_notes',type:'text'},
+    ]
+  },
+  letters:{
+    icon:'✉️', tableCols:['date','letterCat','letterDetail','entity'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'letterCat',l:'f_letterCat',type:'select',opts:['صادر / Outgoing','وارد / Incoming']},
+      {k:'letterDetail',l:'f_letterDetail',type:'text',req:true},
+      {k:'entity',l:'f_entity',type:'text',req:true},
+    ]
+  },
+  meetings:{
+    icon:'🤝', tableCols:['date','place','entity','meetType','attendance','hours','details'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'place',l:'f_place',type:'text'},
+      {k:'entity',l:'f_entity',type:'text',req:true},
+      {k:'meetType',l:'f_meetType',type:'select',opts:['حضوري / In-person','عن بعد / Remote']},
+      {k:'attendance',l:'f_attendance',type:'number'},
+      {k:'hours',l:'f_hours',type:'number'},
+      {k:'details',l:'f_details',type:'text'},
+    ]
+  },
+  media:{
+    icon:'📊', tableCols:['date','platform','posts'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'platform',l:'f_platform',type:'select',opts:['X (اكس)','Instagram (انستغرام)','TikTok (تيك توك)','YouTube (يوتيوب)','LinkedIn (لينكد ان)']},
+      {k:'posts',l:'f_posts',type:'number',req:true},
+    ]
+  },
+  finance:{
+    icon:'💰', tableCols:['date','finType','_summary'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'finType',l:'f_finType',type:'select',opts:[
+        'grant|ft_grant','partner|ft_partner','sale|ft_sale','metric|ft_metric'],req:true},
+      // grant
+      {k:'projName',l:'f_projName',type:'text',show:'grant'},
+      {k:'forEntity',l:'f_forEntity',type:'text',show:'grant'},
+      // partner
+      {k:'partner',l:'f_partner',type:'text',show:'partner'},
+      {k:'amount',l:'f_amount',type:'number',show:'partner'},
+      // sale
+      {k:'saleType',l:'f_saleType',type:'text',show:'sale'},
+      {k:'count',l:'f_count',type:'number',show:'sale'},
+      {k:'price',l:'f_price',type:'number',show:'sale'},
+      // metric
+      {k:'item',l:'f_item',type:'text',show:'metric'},
+      {k:'value',l:'f_value',type:'text',show:'metric'},
+    ]
+  },
+  initiatives:{
+    icon:'🚀', tableCols:['date','initType','_summary'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'initType',l:'f_initType',type:'select',opts:['design|it_design','metric|it_metric'],req:true},
+      {k:'details',l:'f_details',type:'text',show:'design'},
+      {k:'executor',l:'f_executor',type:'text',show:'design'},
+      {k:'category',l:'f_category',type:'text',show:'design'},
+      {k:'item',l:'f_item',type:'text',show:'metric'},
+      {k:'value',l:'f_value',type:'text',show:'metric'},
+    ]
+  },
+  quality:{
+    icon:'🏆', tableCols:['date','partType','details'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'partType',l:'f_partType',type:'text',req:true},
+      {k:'details',l:'f_details',type:'text',req:true},
+    ]
+  },
+};
+
+/* nice display for finance/initiatives merged summary column */
+function summaryText(tbl,r){
+  if(tbl==='finance'){
+    if(r.finType==='grant')  return `${t('ft_grant')}: ${r.projName||''} — ${r.forEntity||''}`;
+    if(r.finType==='partner')return `${t('ft_partner')}: ${r.partner||''} — ${r.amount||0}`;
+    if(r.finType==='sale')   return `${t('ft_sale')}: ${r.saleType||''} ×${r.count||0} @${r.price||0}`;
+    if(r.finType==='metric') return `${r.item||''}: ${r.value||''}`;
+  }
+  if(tbl==='initiatives'){
+    if(r.initType==='design')return `${r.details||''}${r.executor?' — '+r.executor:''}`;
+    if(r.initType==='metric')return `${r.item||''}: ${r.value||''}`;
+  }
+  return '';
+}
+function typeBadge(tbl,r){
+  const map={grant:'ft_grant',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
+  const key = tbl==='finance'? r.finType : r.initType;
+  return t(map[key]||key);
+}
+
+/* render a value for a table cell */
+function cellVal(tbl,col,r){
+  if(col==='_summary') return summaryText(tbl,r);
+  if(col==='finType')  return `<span class="chip g">${typeBadge('finance',r)}</span>`;
+  if(col==='initType') return `<span class="chip b">${typeBadge('initiatives',r)}</span>`;
+  if(col==='channel'){ const arr=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
+    return arr.map(c=>`<span class="chip b">${c}</span>`).join(' '); }
+  if(col==='date') return r.date||'';
+  return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
+}
+function colLabel(tbl,col){
+  if(col==='_summary') return t('f_details');
+  const f = SECTIONS[tbl].fields.find(f=>f.k===col);
+  return f? t(f.l) : col;
+}
+
+console.log('app.js sections loaded');
+/* ---------------- summary helpers (same as Stage 1) ---------------- */
+function summaryText(tbl,r){
+  if(tbl==='finance'){
+    if(r.finType==='grant')  return `${t('ft_grant')}: ${r.projName||''} — ${r.forEntity||''}`;
+    if(r.finType==='partner')return `${t('ft_partner')}: ${r.partner||''} — ${r.amount||0}`;
+    if(r.finType==='sale')   return `${t('ft_sale')}: ${r.saleType||''} ×${r.count||0} @${r.price||0}`;
+    if(r.finType==='metric') return `${r.item||''}: ${r.value||''}`;
+  }
+  if(tbl==='initiatives'){
+    if(r.initType==='design')return `${r.details||''}${r.executor?' — '+r.executor:''}`;
+    if(r.initType==='metric')return `${r.item||''}: ${r.value||''}`;
+  }
+  return '';
+}
+function typeBadge(tbl,r){
+  const map={grant:'ft_grant',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
+  const key = tbl==='finance'? r.finType : r.initType;
+  return t(map[key]||key);
+}
+function cellVal(tbl,col,r){
+  if(col==='_summary') return summaryText(tbl,r);
+  if(col==='finType')  return `<span class="chip g">${typeBadge('finance',r)}</span>`;
+  if(col==='initType') return `<span class="chip b">${typeBadge('initiatives',r)}</span>`;
+  if(col==='channel'){ const arr=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
+    return arr.map(c=>`<span class="chip b">${c}</span>`).join(' '); }
+  if(col==='date') return r.date||'';
+  return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
+}
+function colLabel(tbl,col){
+  if(col==='_summary') return t('f_details');
+  const f = SECTIONS[tbl].fields.find(f=>f.k===col);
+  return f? t(f.l) : col;
+}
+
+/* ---------------- AUTH ---------------- */
+async function boot(){
+  document.body.setAttribute('dir', LANG==='ar'?'rtl':'ltr');
+  if(SUPABASE_URL.startsWith('PASTE')||SUPABASE_ANON.startsWith('PASTE')){
+    document.getElementById('root').innerHTML =
+      `<div class="setup-needed"><h2>⚙️ ${LANG==='ar'?'يلزم إكمال الإعداد':'Setup needed'}</h2>
+       <p>${LANG==='ar'?'افتح ملف التطبيق في محرر نصوص وألصق رابط المشروع والمفتاح العام من Supabase في أعلى الكود. راجع دليل الإعداد.':'Open this file in a text editor and paste your Supabase Project URL and anon key near the top of the script. See the setup guide.'}</p></div>`;
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session){ await onLogin(session); }
+  else renderLogin();
+  sb.auth.onAuthStateChange((_e,s)=>{ if(!s){ SESSION=null; renderLogin(); } });
+}
+function renderLogin(){
+  const r=document.getElementById('root');
+  r.innerHTML=`
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">
+        <svg width="52" height="52" viewBox="0 0 40 40"><circle cx="20" cy="11" r="5" fill="#7fc08e"/>
+          <path d="M8 34c0-7 5-12 12-12s12 5 12 12" stroke="#3f8f52" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <circle cx="9" cy="15" r="3.4" fill="#4a9c5c"/><circle cx="31" cy="15" r="3.4" fill="#c79a3d"/></svg>
+        <h1>${t('loginTitle')}</h1>
+        <div class="login-sub">SAUDI FRIENDSHIP · HOSPITALITY · CULTURE · TOURISM</div>
+      </div>
+      <div class="field"><label>${t('email')}</label><input id="loginEmail" type="email" autocomplete="username"></div>
+      <div class="field"><label>${t('password')}</label><input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div id="loginErr" class="login-err"></div>
+      <button class="btn btn-primary login-btn" onclick="doLogin()">${t('signIn')}</button>
+      <div class="login-lang">
+        <button onclick="setLang('ar')" class="${LANG==='ar'?'on':''}">عربي</button>
+        <button onclick="setLang('en')" class="${LANG==='en'?'on':''}">English</button>
+      </div>
+    </div>
+  </div>`;
+}
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginErr');
+  errEl.textContent='';
+  const { data, error } = await sb.auth.signInWithPassword({email,password});
+  if(error){ errEl.textContent=t('loginErr'); return; }
+  await onLogin(data.session);
+}
+async function onLogin(session){
+  SESSION=session;
+  const { data:prof } = await sb.from('profiles').select('*').eq('id',session.user.id).single();
+  ME = { id:session.user.id, name:(prof?.full_name)||session.user.email, role:(prof?.role)||'staff' };
+  await DB.refresh();
+  renderApp();
+}
+async function doLogout(){ await sb.auth.signOut(); SESSION=null; renderLogin(); }
+
+console.log('cloud auth loaded');
+/* ---------------- APP SHELL ---------------- */
+let PAGE='dashboard';
+function navGroups(){
+  const g=[
+    {g:'nav_main', items:[['dashboard','📈'],['report','📄']]},
+    {g:'nav_data', items:[['daily','📣'],['letters','✉️'],['meetings','🤝'],
+        ['media','📊'],['finance','💰'],['initiatives','🚀'],['quality','🏆']]},
+  ];
+  if(ME.role==='admin') g.push({g:'nav_admin', items:[['users','👤'],['audit','🧾']]});
+  return g;
+}
+function renderApp(){
+  document.getElementById('root').innerHTML=`
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><div class="logo">
+        <svg class="mark" viewBox="0 0 40 40"><circle cx="20" cy="11" r="5" fill="#7fc08e"/>
+          <path d="M8 34c0-7 5-12 12-12s12 5 12 12" stroke="#7fc08e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <circle cx="9" cy="15" r="3.4" fill="#4a9c5c"/><circle cx="31" cy="15" r="3.4" fill="#c79a3d"/></svg>
+        <div><h1>${t('brand')}</h1><div class="sub">SAUDI FRIENDSHIP</div></div>
+      </div></div>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-foot">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div class="avatar">${(ME.name||'?').slice(0,1).toUpperCase()}</div>
+          <div style="line-height:1.2"><div style="color:#eaf3ec;font-weight:700;font-size:12.5px">${ME.name}</div>
+          <div style="font-size:10.5px">${ME.role==='admin'?t('role_admin'):t('role_staff')}</div></div>
+        </div>
+        <button class="btn-signout" onclick="doLogout()">${t('signOut')}</button>
+      </div>
+    </aside>
+    <div class="backdrop" id="backdrop" onclick="toggleMenu(false)"></div>
+    <div class="main">
+      <div class="topbar">
+        <button class="btn btn-ghost btn-sm menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="page-title" id="pageTitle"></div><div class="spacer"></div>
+        <div class="month-pick"><label>${t('month')}</label><select id="monthSel" onchange="onMonth(this.value)"></select></div>
+        <div class="lang-toggle">
+          <button class="${LANG==='ar'?'on':''}" onclick="setLang('ar')">ع</button>
+          <button class="${LANG==='en'?'on':''}" onclick="setLang('en')">EN</button>
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>`;
+  renderNav(); renderMonthSel(); go('dashboard');
+}
+function renderNav(){
+  document.getElementById('nav').innerHTML = navGroups().map(grp=>`
+    <div class="group-label">${t(grp.g)}</div>
+    ${grp.items.map(([id,ico])=>`<button class="${PAGE===id?'active':''}" onclick="go('${id}')">
+      <span class="ico">${ico}</span><span>${t(id)}</span></button>`).join('')}`).join('');
+}
+function renderMonthSel(){
+  const sel=document.getElementById('monthSel'); if(!sel) return;
+  const months=allMonths();
+  sel.innerHTML=`<option value="">${t('allMonths')}</option>`+
+    months.map(m=>`<option value="${m}" ${m===CURRENT_MONTH?'selected':''}>${fmtMonth(m)}${DB.status(m)!=='draft'?' • '+t('st_'+DB.status(m)):''}</option>`).join('');
+  sel.value=CURRENT_MONTH;
+}
+function onMonth(v){ CURRENT_MONTH=v; localStorage.setItem('sfc_month',v); renderPage(); }
+function toggleMenu(force){
+  const sb_=document.getElementById('sidebar'), bd=document.getElementById('backdrop');
+  const open = force===undefined? !sb_.classList.contains('open') : force;
+  sb_.classList.toggle('open',open); bd.classList.toggle('open',open);
+}
+function go(page){ PAGE=page; toggleMenu(false); renderNav(); renderPage(); }
+function renderPage(){
+  const c=document.getElementById('content');
+  document.getElementById('pageTitle').textContent=t(PAGE);
+  renderMonthSel();
+  if(PAGE==='dashboard') c.innerHTML=viewDashboard();
+  else if(PAGE==='report') c.innerHTML=viewReport();
+  else if(PAGE==='users') viewUsers().then(h=>c.innerHTML=h);
+  else if(PAGE==='audit') viewAudit().then(h=>c.innerHTML=h);
+  else c.innerHTML=viewSection(PAGE);
+}
+
+/* ---------------- SECTION PAGE ---------------- */
+function viewSection(tbl){
+  const sec=SECTIONS[tbl];
+  const rows=inMonth(DB.all(tbl)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const cols=sec.tableCols; const locked=isLocked();
+  return `
+    ${locked?`<div class="locked-banner">🔒 ${t('lockedMsg')}</div>`:''}
+    <div class="section-add">
+      ${locked?'':`<button class="btn btn-primary" onclick="openForm('${tbl}')">＋ ${t('add')}</button>`}
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>${sec.icon} ${t(tbl)}</h3><span class="count">${rows.length}</span>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="exportCsv('${tbl}')">${t('exportCsv')}</button></div>
+      <div class="panel-body">
+        ${rows.length? `<table class="tbl"><thead><tr><th class="num">#</th>
+          ${cols.map(col=>`<th>${colLabel(tbl,col)}</th>`).join('')}<th>${t('by')}</th><th></th></tr></thead>
+          <tbody>${rows.map((r,i)=>`<tr>
+            <td class="num">${i+1}</td>
+            ${cols.map(col=>`<td>${cellVal(tbl,col,r)}</td>`).join('')}
+            <td style="font-size:11.5px;color:var(--ink-soft)">${r._by||''}</td>
+            <td class="actions">${rowActions(tbl,r,locked)}</td></tr>`).join('')}
+          </tbody></table>` :
+        `<div class="empty"><p>${t('empty')}</p></div>`}
+      </div>
+    </div>`;
+}
+function rowActions(tbl,r,locked){
+  if(locked) return '';
+  let h='';
+  if(canEditRow(r)) h+=`<button class="btn-danger-ghost" onclick="editRow('${tbl}','${r.id}')">${t('edit')}</button>`;
+  if(ME.role==='admin') h+=`<button class="btn-danger-ghost" onclick="delRow('${tbl}','${r.id}')">${t('del')}</button>`;
+  return h || `<span style="font-size:11px;color:#b7bdb8">${t('notYours')}</span>`;
+}
+
+/* ---------------- FORM ---------------- */
+let FORM_STATE={tbl:null,id:null};
+function openForm(tbl,rec){
+  FORM_STATE={tbl,id:rec?rec.id:null};
+  const sec=SECTIONS[tbl];
+  document.getElementById('modalTitle').textContent=(rec?t('edit'):t('add'))+' · '+t(tbl);
+  document.getElementById('modalBody').innerHTML=`<div class="form-grid" id="formGrid">
+    ${sec.fields.map(f=>fieldHtml(f,rec)).join('')}</div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn btn-primary" id="saveBtn" onclick="saveForm()">${t('save')}</button></div>`;
+  applyConditional(tbl,rec);
+  document.getElementById('modalBg').classList.add('open');
+}
+function fieldHtml(f,rec){
+  const v = rec ? (rec[f.k]??'') : (f.type==='date'? new Date().toISOString().slice(0,10):'');
+  const full = (f.type==='text'&&['letterDetail','details','notes','recipient'].includes(f.k))||f.type==='multi';
+  const wrap=c=>`<div class="field ${full?'full':''}" data-show="${f.show||''}"><label>${t(f.l)}${f.req?' *':''}</label>${c}</div>`;
+  if(f.type==='select'){
+    const opts=f.opts.map(o=>{const[val,lk]=o.includes('|')?o.split('|'):[o,null];
+      return `<option value="${val}" ${v==val?'selected':''}>${lk?t(lk):o}</option>`;}).join('');
+    return wrap(`<select data-f="${f.k}" onchange="applyConditional('${FORM_STATE.tbl}')"><option value="">—</option>${opts}</select>`);
+  }
+  if(f.type==='multi'){
+    const arr=Array.isArray(v)?v:(v?[v]:[]);
+    return wrap(`<div style="display:flex;flex-wrap:wrap;gap:6px">${f.opts.map(o=>`
+      <label style="display:flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px;background:var(--sand);padding:5px 9px;border-radius:8px;cursor:pointer">
+      <input type="checkbox" data-multi="${f.k}" value="${o}" ${arr.includes(o)?'checked':''}> ${o}</label>`).join('')}</div>`);
+  }
+  const type=f.type==='number'?'number':(f.type==='date'?'date':'text');
+  return wrap(`<input type="${type}" data-f="${f.k}" value="${String(v).replace(/"/g,'&quot;')}">`);
+}
+function applyConditional(tbl){
+  const typeField=tbl==='finance'?'finType':(tbl==='initiatives'?'initType':null);
+  if(!typeField) return;
+  const cur=document.querySelector(`[data-f="${typeField}"]`)?.value||'';
+  document.querySelectorAll('#formGrid .field[data-show]').forEach(el=>{
+    const s=el.getAttribute('data-show'); el.style.display=(!s||s===cur)?'flex':'none'; });
+}
+async function saveForm(){
+  const {tbl,id}=FORM_STATE; const sec=SECTIONS[tbl];
+  const rec=id?{...DB.all(tbl).find(r=>r.id===id)}:{};
+  for(const f of sec.fields){
+    if(f.type==='multi') rec[f.k]=[...document.querySelectorAll(`[data-multi="${f.k}"]:checked`)].map(c=>c.value);
+    else { const el=document.querySelector(`[data-f="${f.k}"]`);
+      if(el) rec[f.k]= f.type==='number'? (el.value===''?'':Number(el.value)) : el.value; }
+  }
+  const miss=sec.fields.find(f=>f.req && (rec[f.k]===''||rec[f.k]==null));
+  if(miss){ toast(t(miss.l),'err'); return; }
+  document.getElementById('saveBtn').disabled=true;
+  const ok=await DB.upsert(tbl,rec);
+  if(ok){ closeModal(); toast(t('saved'),'ok'); renderMonthSel(); renderPage(); }
+  else document.getElementById('saveBtn').disabled=false;
+}
+function editRow(tbl,id){ openForm(tbl,DB.all(tbl).find(r=>r.id===id)); }
+async function delRow(tbl,id){ if(!confirm(t('confirmDel')))return;
+  if(await DB.remove(tbl,id)){ toast(t('deleted')); renderMonthSel(); renderPage(); } }
+function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+
+console.log('cloud ui2 loaded');
+/* ---------------- DASHBOARD ---------------- */
+function sum(a,f){return a.reduce((s,r)=>s+(Number(f(r))||0),0);}
+function viewDashboard(){
+  const daily=inMonth(DB.all('daily')), letters=inMonth(DB.all('letters')),
+        meetings=inMonth(DB.all('meetings')), finance=inMonth(DB.all('finance'));
+  const sales=finance.filter(r=>r.finType==='sale');
+  const salesTotal=sum(sales,r=>(r.count||0)*(r.price||0));
+  const benef=finance.filter(r=>r.finType==='metric'&&/مستفيد|benef/i.test(r.item||''));
+  const reach=sum(daily,r=>r.count||0);
+  const chan={}; daily.forEach(r=>{const a=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
+    a.forEach(c=>chan[c]=(chan[c]||0)+(Number(r.count)||1));});
+  const prog={}; daily.forEach(r=>{if(r.program)prog[r.program]=(prog[r.program]||0)+(Number(r.count)||1);});
+  const recent=DB.all('daily').slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,6);
+  return `
+  <div class="stat-grid">
+    ${stat('d_activities',daily.length,'')}${stat('d_reach',reach,'b')}
+    ${stat('d_letters',letters.length,'')}${stat('d_meetings',meetings.length,'b')}
+    ${stat('d_sales',salesTotal.toLocaleString(),'g')}
+    ${stat('d_benef',sum(benef,r=>parseInt(r.value)||0),'g')}</div>
+  <div class="two-col">
+    <div class="panel"><div class="panel-head"><h3>${t('d_byChannel')}</h3></div><div class="panel-pad">${bar(chan)}</div></div>
+    <div class="panel"><div class="panel-head"><h3>${t('d_byProgram')}</h3></div><div class="panel-pad">${bar(prog)}</div></div></div>
+  <div class="panel"><div class="panel-head"><h3>${t('d_recent')}</h3></div><div class="panel-body">
+    ${recent.length?`<table class="tbl"><thead><tr><th>${t('f_date')}</th><th>${t('f_program')}</th><th>${t('f_recipient')}</th><th>${t('f_channel')}</th><th>${t('by')}</th></tr></thead>
+    <tbody>${recent.map(r=>`<tr><td>${r.date||''}</td><td>${r.program||''}</td><td>${r.recipient||''}</td><td>${cellVal('daily','channel',r)}</td><td style="font-size:11.5px;color:var(--ink-soft)">${r._by||''}</td></tr>`).join('')}</tbody></table>`:`<div class="empty"><p>${t('empty')}</p></div>`}
+  </div></div>`;
+}
+function stat(k,v,c){return `<div class="stat ${c}"><div class="k">${t(k)}</div><div class="v">${v}</div></div>`;}
+function bar(obj){
+  const e=Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!e.length)return `<div class="empty" style="padding:20px"><p>${t('empty')}</p></div>`;
+  const mx=Math.max(...e.map(x=>x[1]));
+  return `<div style="display:flex;flex-direction:column;gap:9px">${e.map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:130px;font-size:12.5px;font-weight:600;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${k}</div>
+      <div style="flex:1;background:var(--sand);border-radius:6px;height:22px;overflow:hidden">
+        <div style="width:${v/mx*100}%;height:100%;background:linear-gradient(90deg,var(--green),var(--green-deep));border-radius:6px"></div></div>
+      <div style="width:34px;text-align:end;font-weight:800;font-size:13px">${v}</div></div>`).join('')}</div>`;
+}
+
+/* ---------------- REPORT + STATUS FLOW ---------------- */
+function rTbl(h,rows){ if(!rows.length)return `<div class="rep-empty">—</div>`;
+  return `<table class="rep-tbl"><thead><tr><th>م</th>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead>
+   <tbody>${rows.map((c,i)=>`<tr><td>${i+1}</td>${c.map(x=>`<td>${x??''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
+function statusPill(s){return `<span class="pill pill-${s}">${t('st_'+s)}</span>`;}
+function viewReport(){
+  if(!CURRENT_MONTH) return `<div class="panel"><div class="empty" style="padding:60px 20px"><p>${t('pickMonthReport')}</p></div></div>`;
+  const M=CURRENT_MONTH, status=DB.status(M), rec=DB.statusRec(M);
+  const f=tbl=>DB.all(tbl).filter(r=>monthOf(r.date)===M);
+  const letters=f('letters'),meetings=f('meetings'),media=f('media'),daily=f('daily'),
+        finance=f('finance'),init=f('initiatives'),quality=f('quality');
+  const isAr=s=>/[\u0600-\u06FF]/.test(s||'');
+  const commLocal=daily.filter(r=>isAr(r.recipient)), commIntl=daily.filter(r=>!isAr(r.recipient));
+  const grants=finance.filter(r=>r.finType==='grant'),partners=finance.filter(r=>r.finType==='partner'),
+        sales=finance.filter(r=>r.finType==='sale'),metrics=finance.filter(r=>r.finType==='metric'),
+        designs=init.filter(r=>r.initType==='design');
+
+  // status control bar (role-aware)
+  let ctl='';
+  if(ME.role==='admin'){
+    if(status==='draft')     ctl=`<button class="btn btn-gold" onclick="setStatus('submitted')">${t('submitReport')}</button>`;
+    if(status==='submitted') ctl=`<button class="btn btn-primary" onclick="setStatus('approved')">${t('approveReport')}</button>
+                                  <button class="btn btn-ghost" onclick="setStatus('draft')">${t('reopenReport')}</button>`;
+    if(status==='approved')  ctl=`<button class="btn btn-ghost" onclick="setStatus('draft')">${t('reopenReport')}</button>`;
+  } else {
+    if(status==='draft')     ctl=`<button class="btn btn-gold" onclick="setStatus('submitted')">${t('submitReport')}</button>`;
+  }
+  const meta = rec ? `<div class="status-meta">
+      ${rec.submitted_at?`<span>${t('submittedBy')}: ${rec.submitted_at.slice(0,10)}</span>`:''}
+      ${rec.approved_at?`<span>${t('approvedBy')}: ${rec.approved_at.slice(0,10)}</span>`:''}
+    </div>`:'';
+
+  return `
+  <div class="report-toolbar no-print">
+    <div class="page-title" style="font-size:16px">${t('reportFor')} ${fmtMonth(M)}</div>
+    ${statusPill(status)}<div class="spacer"></div>
+    ${ctl}
+    <button class="btn btn-ghost" onclick="window.print()">🖨️ ${t('print')}</button>
+  </div>
+  ${meta}
+  <div class="report-sheet" id="reportSheet">
+    <div class="rep-section" style="text-align:center;padding:40px">
+      <h1 class="rep-title" style="font-size:30px">${t('reportFor')}<br>${fmtMonth(M)}</h1>
+      <div style="color:var(--green);font-weight:800;letter-spacing:2px;margin-top:8px">SAUDI FRIENDSHIP</div>
+      <div style="color:var(--ink-soft);font-size:12px;letter-spacing:3px">HOSPITALITY · CULTURE · TOURISM</div>
+    </div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_meetings')}</div>
+      ${rTbl([t('f_date'),t('f_place'),t('f_entity'),t('f_meetType'),t('f_attendance'),t('f_hours'),t('f_details')],
+        meetings.map(r=>[r.date,r.place,r.entity,r.meetType,r.attendance,r.hours,r.details]))}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_letters')}</div>
+      ${rTbl([t('f_date'),t('f_letterCat'),t('f_letterDetail'),t('f_entity')],
+        letters.map(r=>[r.date,r.letterCat,r.letterDetail,r.entity]))}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commLocal')}</div>
+      ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel'),t('f_details')],
+        commLocal.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel),r.notes]))}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commIntl')}</div>
+      ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel')],
+        commIntl.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel)]))}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_media')}</h2>
+      ${rTbl([t('f_date'),t('f_platform'),t('f_posts')],media.map(r=>[r.date,r.platform,r.posts]))}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_fin')}</h2><div class="rep-sub">${t('r_grants')}</div>
+      ${rTbl([t('f_date'),t('f_projName'),t('f_forEntity')],grants.map(r=>[r.date,r.projName,r.forEntity]))}
+      <div class="rep-sub" style="margin-top:22px">${t('r_partners')}</div>
+      ${rTbl([t('f_date'),t('f_partner'),t('f_amount')],partners.map(r=>[r.date,r.partner,r.amount]))}
+      <div class="rep-sub" style="margin-top:22px">${t('r_sales')}</div>
+      ${rTbl([t('f_saleType'),t('f_count'),t('f_price')],sales.map(r=>[r.saleType,r.count,r.price]))}
+      ${metrics.length?`<div class="rep-sub" style="margin-top:22px">${t('initiatives')}</div>
+        ${rTbl([t('f_item'),t('f_value')],metrics.map(r=>[r.item,r.value]))}`:''}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_initiatives')}</h2>
+      ${rTbl([t('f_date'),t('f_executor'),t('f_details'),t('f_category')],
+        designs.map(r=>[r.date,r.executor,r.details,r.category]))}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_quality')}</h2><div class="rep-sub">${t('r_qualitySub')}</div>
+      ${rTbl([t('f_date'),t('f_partType'),t('f_details')],quality.map(r=>[r.date,r.partType,r.details]))}</div>
+  </div>`;
+}
+async function setStatus(s){ if(await DB.setStatus(CURRENT_MONTH,s)){ toast(t('saved'),'ok'); renderMonthSel(); renderPage(); } }
+
+/* ---------------- USERS (admin) ---------------- */
+async function viewUsers(){
+  const { data:profs, error } = await sb.from('profiles').select('*').order('created_at');
+  if(error) return `<div class="panel"><div class="panel-pad">${error.message}</div></div>`;
+  return `<div class="panel"><div class="panel-head"><h3>👤 ${t('adminUsers')}</h3></div><div class="panel-body">
+    <table class="tbl"><thead><tr><th>${t('actor')}</th><th>${t('statusLabel')}</th><th></th></tr></thead><tbody>
+    ${(profs||[]).map(p=>`<tr><td>${p.full_name||'—'}</td>
+      <td>${p.role==='admin'?`<span class="chip g">${t('role_admin')}</span>`:`<span class="chip">${t('role_staff')}</span>`}</td>
+      <td class="actions">${p.id===ME.id?'':
+        (p.role==='admin'
+          ?`<button class="btn-danger-ghost" onclick="setRole('${p.id}','staff')">${t('makeStaff')}</button>`
+          :`<button class="btn-danger-ghost" onclick="setRole('${p.id}','admin')">${t('makeAdmin')}</button>`)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="panel-pad" style="font-size:12.5px;color:var(--ink-soft)">
+      ${LANG==='ar'?'لإضافة مستخدم جديد: من لوحة Supabase ← Authentication ← Users ← Add user.':'To add a new user: Supabase dashboard → Authentication → Users → Add user.'}</div>
+    </div>`;
+}
+async function setRole(id,role){
+  const { error } = await sb.from('profiles').update({role}).eq('id',id);
+  if(error) return toast(error.message,'err');
+  toast(t('saved'),'ok'); renderPage();
+}
+
+/* ---------------- AUDIT (admin) ---------------- */
+async function viewAudit(){
+  const { data, error } = await sb.from('audit_log').select('*').order('at',{ascending:false}).limit(200);
+  if(error) return `<div class="panel"><div class="panel-pad">${error.message}</div></div>`;
+  return `<div class="panel"><div class="panel-head"><h3>🧾 ${t('auditLog')}</h3><span class="count">${(data||[]).length}</span></div>
+    <div class="panel-body">${(data&&data.length)?`<table class="tbl"><thead><tr>
+      <th>${t('when')}</th><th>${t('actor')}</th><th>${t('action')}</th><th>${t('f_program')}</th></tr></thead>
+      <tbody>${data.map(r=>`<tr><td style="white-space:nowrap">${(r.at||'').replace('T',' ').slice(0,16)}</td>
+        <td>${r.actor_name||''}</td><td>${t('a_'+r.action)||r.action}</td>
+        <td>${r.section?t(r.section):(r.detail||'')}</td></tr>`).join('')}</tbody></table>`
+      :`<div class="empty"><p>${t('empty')}</p></div>`}</div></div>`;
+}
+
+/* ---------------- EXPORT ---------------- */
+function csvEscape(v){v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function exportCsv(tbl){
+  const rows=inMonth(DB.all(tbl)); const sec=SECTIONS[tbl]; const keys=sec.fields.map(f=>f.k);
+  const lines=[keys.map(k=>colLabel(tbl,k)).map(csvEscape).join(',')];
+  rows.forEach(r=>lines.push(keys.map(k=>csvEscape(Array.isArray(r[k])?r[k].join(' | '):r[k])).join(',')));
+  const blob=new Blob(["\uFEFF"+lines.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`SFC_${tbl}${CURRENT_MONTH?'_'+CURRENT_MONTH:''}.csv`;a.click();
+}
+
+/* ---------------- misc ---------------- */
+function setLang(l){ LANG=l; localStorage.setItem('sfc_lang',l);
+  document.body.setAttribute('dir',l==='ar'?'rtl':'ltr'); document.documentElement.setAttribute('lang',l);
+  if(SESSION) renderApp(); else renderLogin(); }
+let toastTimer;
+function toast(msg,cls=''){ const el=document.getElementById('toast'); if(!el)return;
+  el.textContent=msg; el.className='toast show '+cls;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='toast '+cls,2600); }
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
+
+boot();
+console.log('cloud booted');
+
+</script>
+</body>
+</html>
