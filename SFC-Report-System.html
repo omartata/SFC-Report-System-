@@ -375,6 +375,7 @@ const T = {
     tplNeedLabels:"كل حقل يحتاج اسماً", tplNeedOptions:"القوائم تحتاج خيارات",
     moveUp:"أعلى", moveDown:"أسفل", removeField:"إزالة",
     entriesCount:"عدد الإدخالات", noTemplates:"لا توجد قوالب بعد — أنشئ أول قالب",
+    delTpl:"حذف نهائي", confirmDelTpl:"حذف هذا القالب نهائياً؟ لا يمكن التراجع.", delHasEntries:"لا يمكن الحذف — يحتوي على إدخالات. استخدم الأرشفة.",
     a_insert:"إضافة", a_update:"تعديل", a_delete:"حذف", a_submit:"تقديم تقرير",
     a_approve:"اعتماد", a_reopen:"إعادة فتح",
   },
@@ -439,6 +440,7 @@ const T = {
     tplNeedLabels:"Every field needs a name", tplNeedOptions:"Dropdowns need choices",
     moveUp:"Up", moveDown:"Down", removeField:"Remove",
     entriesCount:"Entries", noTemplates:"No templates yet — create your first",
+    delTpl:"Delete permanently", confirmDelTpl:"Permanently delete this template? Cannot be undone.", delHasEntries:"Can't delete — it has entries. Use Archive instead.",
     a_insert:"Added", a_update:"Edited", a_delete:"Deleted", a_submit:"Submitted report",
     a_approve:"Approved", a_reopen:"Reopened",
   }
@@ -532,6 +534,16 @@ const DB = {
     const { error } = await sb.from('templates').update({archived,updated_at:new Date().toISOString()}).eq('id',id);
     if(error) return toast(error.message,'err'),false;
     await audit(archived?'archive':'restore','templates',id);
+    await DB.refresh(); return true;
+  },
+  async deleteTemplate(id){
+    // guard: refuse if any entries exist for this template (re-check server-side, not just cache)
+    const chk = await sb.from('entries').select('id').eq('section','tpl_'+id);
+    if(chk.error) return toast(chk.error.message,'err'),false;
+    if((chk.data||[]).length>0){ toast(t('delHasEntries'),'err'); return false; }
+    const { error } = await sb.from('templates').delete().eq('id',id);
+    if(error) return toast(error.message,'err'),false;
+    await audit('delete','templates',id);
     await DB.refresh(); return true;
   }
 };
@@ -1206,6 +1218,7 @@ function viewTemplates(){
           ? `<button class="btn-danger-ghost" onclick="tplArchive('${tp.id}',false)">${t('restore')}</button>`
           : `<button class="btn-danger-ghost" onclick="openTplEditor('${tp.id}')">${t('edit')}</button>
              <button class="btn-danger-ghost" onclick="tplArchive('${tp.id}',true)">${t('archive')}</button>`}
+        ${n===0? `<button class="btn-danger-ghost" style="color:var(--danger)" onclick="tplDelete('${tp.id}')">${t('delTpl')}</button>`:''}
       </td></tr>`;
   };
   return `
@@ -1296,6 +1309,12 @@ async function tplSave(){
     if((f.type==='select'||f.type==='multi')&&!(f.options&&f.options.length)) return toast(t('tplNeedOptions'),'err');
   }
   if(await DB.saveTemplate(e)){ closeModal(); toast(t('saved'),'ok'); renderNav(); renderPage(); }
+}
+async function tplDelete(id){
+  if(!confirm(t('confirmDelTpl'))) return;
+  if(await DB.deleteTemplate(id)){ toast(t('deleted'),'ok');
+    if(PAGE==='tpl_'+id) PAGE='templates';
+    renderNav(); renderPage(); }
 }
 async function tplArchive(id,archived){
   if(archived && !confirm(t('confirmArchive'))) return;
