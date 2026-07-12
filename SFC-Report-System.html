@@ -353,6 +353,7 @@ const T = {
     // auth + status
     login:"تسجيل الدخول", email:"البريد الإلكتروني", password:"كلمة المرور",
     signIn:"دخول", signOut:"خروج", loginErr:"بريد أو كلمة مرور غير صحيحة", loginTitle:"نظام تقارير الجمعية",
+    loginSub:"جمعية أصدقاء السعودية · ضيافة · ثقافة · سياحة",
     loading:"جارٍ التحميل…", role_admin:"مسؤول", role_staff:"موظف",
     st_draft:"مسودة", st_submitted:"مُقدَّم", st_approved:"معتمد",
     submitReport:"تقديم التقرير", approveReport:"اعتماد وقفل", reopenReport:"إعادة فتح",
@@ -361,6 +362,19 @@ const T = {
     onlyAdmin:"للمسؤول فقط", notYours:"يمكنك تعديل سجلاتك فقط",
     adminUsers:"إدارة المستخدمين", makeAdmin:"ترقية لمسؤول", makeStaff:"تحويل لموظف",
     auditLog:"سجل من فعل ماذا ومتى", actor:"المستخدم", action:"العملية", when:"التاريخ",
+    templates:"قوالب التقارير", newTemplate:"قالب جديد", editTemplate:"تعديل القالب",
+    tplTitleAr:"العنوان (عربي)", tplTitleEn:"العنوان (إنجليزي)", tplParent:"يظهر تحت قسم",
+    tplStandalone:"قسم مستقل", tplFields:"الحقول", addField:"إضافة حقل",
+    fLabelAr:"اسم الحقل (عربي)", fLabelEn:"اسم الحقل (إنجليزي)", fType:"النوع",
+    fRequired:"إلزامي", fOptions:"الخيارات (افصل بينها بفاصلة)",
+    ftText:"نص", ftLong:"نص طويل", ftNumber:"رقم", ftDate:"تاريخ",
+    ftSelect:"قائمة منسدلة", ftMulti:"اختيار متعدد", ftYesno:"نعم / لا",
+    archive:"أرشفة", restore:"استعادة", archived:"مؤرشف",
+    confirmArchive:"أرشفة هذا القالب؟ البيانات القديمة تبقى محفوظة ويختفي من القائمة.",
+    tplNeedTitle:"أدخل عنوان القالب", tplNeedField:"أضف حقلاً واحداً على الأقل",
+    tplNeedLabels:"كل حقل يحتاج اسماً", tplNeedOptions:"القوائم تحتاج خيارات",
+    moveUp:"أعلى", moveDown:"أسفل", removeField:"إزالة",
+    entriesCount:"عدد الإدخالات", noTemplates:"لا توجد قوالب بعد — أنشئ أول قالب",
     a_insert:"إضافة", a_update:"تعديل", a_delete:"حذف", a_submit:"تقديم تقرير",
     a_approve:"اعتماد", a_reopen:"إعادة فتح",
   },
@@ -403,6 +417,7 @@ const T = {
     reportFor:"Monthly Report —", pickMonthReport:"Pick a specific month above to view its report",
     login:"Sign in", email:"Email", password:"Password",
     signIn:"Sign in", signOut:"Sign out", loginErr:"Wrong email or password", loginTitle:"SFC Report System",
+    loginSub:"SAUDI FRIENDSHIP · HOSPITALITY · CULTURE · TOURISM",
     loading:"Loading…", role_admin:"Admin", role_staff:"Staff",
     st_draft:"Draft", st_submitted:"Submitted", st_approved:"Approved",
     submitReport:"Submit report", approveReport:"Approve & lock", reopenReport:"Reopen",
@@ -411,6 +426,19 @@ const T = {
     onlyAdmin:"Admin only", notYours:"You can edit only your own records",
     adminUsers:"Manage users", makeAdmin:"Make admin", makeStaff:"Make staff",
     auditLog:"Who did what, and when", actor:"User", action:"Action", when:"When",
+    templates:"Report Templates", newTemplate:"New template", editTemplate:"Edit template",
+    tplTitleAr:"Title (Arabic)", tplTitleEn:"Title (English)", tplParent:"Appears under section",
+    tplStandalone:"Standalone section", tplFields:"Fields", addField:"Add field",
+    fLabelAr:"Field name (Arabic)", fLabelEn:"Field name (English)", fType:"Type",
+    fRequired:"Required", fOptions:"Choices (comma-separated)",
+    ftText:"Text", ftLong:"Long text", ftNumber:"Number", ftDate:"Date",
+    ftSelect:"Dropdown", ftMulti:"Multi-select", ftYesno:"Yes / No",
+    archive:"Archive", restore:"Restore", archived:"Archived",
+    confirmArchive:"Archive this template? Old data stays saved; it disappears from the sidebar.",
+    tplNeedTitle:"Enter a template title", tplNeedField:"Add at least one field",
+    tplNeedLabels:"Every field needs a name", tplNeedOptions:"Dropdowns need choices",
+    moveUp:"Up", moveDown:"Down", removeField:"Remove",
+    entriesCount:"Entries", noTemplates:"No templates yet — create your first",
     a_insert:"Added", a_update:"Edited", a_delete:"Deleted", a_submit:"Submitted report",
     a_approve:"Approved", a_reopen:"Reopened",
   }
@@ -434,17 +462,25 @@ const fmtMonth = ym => { if(!ym) return ''; const [y,m]=ym.split('-');
    In-memory CACHE mirrors the DB for synchronous rendering; every
    mutation writes to Supabase then refreshes the cache. entries table
    stores {section, entry_date, data{}}, so we flatten to Stage-1 shape. */
-const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[], status:{} };
+const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[], status:{}, templates:[] };
+const BUILTIN = ['daily','letters','meetings','media','finance','initiatives','quality'];
 
 const DB = {
   all(tbl){ return CACHE[tbl]||[]; },
+  templates(){ return CACHE.templates.filter(t=>!t.archived); },
+  template(id){ return CACHE.templates.find(t=>t.id===id); },
   async refresh(){
+    // load templates first so we know which tpl_ buckets exist
+    const tq = await sb.from('templates').select('*').order('sort_order').order('created_at');
+    if(tq.error){ console.error(tq.error); } else CACHE.templates = tq.data||[];
     const { data, error } = await sb.from('entries').select('*').order('entry_date',{ascending:false});
     if(error){ console.error(error); toast(error.message,'err'); return; }
-    for(const k of ['daily','letters','meetings','media','finance','initiatives','quality']) CACHE[k]=[];
+    for(const k of BUILTIN) CACHE[k]=[];
+    CACHE.templates.forEach(t=>CACHE['tpl_'+t.id]=[]);
     (data||[]).forEach(row=>{
       const rec = { id:row.id, date:row.entry_date, _by:row.created_name||'', _byId:row.created_by, ...row.data };
       if(CACHE[row.section]) CACHE[row.section].push(rec);
+      else if(row.section.startsWith('tpl_')){ CACHE[row.section]=[rec]; } // orphan (archived tpl) still kept
     });
     // status
     const st = await sb.from('report_status').select('*');
@@ -480,6 +516,23 @@ const DB = {
     if(error) return toast(error.message,'err'),false;
     await audit(status==='submitted'?'submit':status==='approved'?'approve':'reopen',null,null,month);
     await DB.refresh(); return true;
+  },
+  async saveTemplate(tpl){
+    const payload={ title_ar:tpl.title_ar, title_en:tpl.title_en, parent:tpl.parent||null,
+      fields:tpl.fields, sort_order:tpl.sort_order??100, archived:tpl.archived??false,
+      updated_at:new Date().toISOString() };
+    let res;
+    if(tpl.id){ res = await sb.from('templates').update(payload).eq('id',tpl.id); }
+    else { payload.created_by=ME.id; res = await sb.from('templates').insert(payload).select().single(); }
+    if(res.error) return toast(res.error.message,'err'),false;
+    await audit(tpl.id?'update':'insert','templates',tpl.id||res.data?.id, tpl.title_en);
+    await DB.refresh(); return true;
+  },
+  async archiveTemplate(id,archived){
+    const { error } = await sb.from('templates').update({archived,updated_at:new Date().toISOString()}).eq('id',id);
+    if(error) return toast(error.message,'err'),false;
+    await audit(archived?'archive':'restore','templates',id);
+    await DB.refresh(); return true;
   }
 };
 async function audit(action,section,entryId,detail){
@@ -491,8 +544,8 @@ let CURRENT_MONTH = localStorage.getItem('sfc_month') || '';
 const inMonth = rows => CURRENT_MONTH ? rows.filter(r=>monthOf(r.date)===CURRENT_MONTH) : rows;
 function allMonths(){
   const s=new Set();
-  ['daily','letters','meetings','media','finance','initiatives','quality']
-    .forEach(k=>CACHE[k].forEach(r=>{if(r.date)s.add(monthOf(r.date));}));
+  Object.keys(CACHE).filter(k=>BUILTIN.includes(k)||k.startsWith('tpl_'))
+    .forEach(k=>(CACHE[k]||[]).forEach(r=>{if(r.date)s.add(monthOf(r.date));}));
   Object.keys(CACHE.status).forEach(m=>s.add(m));
   return [...s].sort().reverse();
 }
@@ -585,6 +638,34 @@ const SECTIONS = {
   },
 };
 
+/* ---- resolver: built-in key OR 'tpl_<id>' -> section definition ---- */
+function tplLabel(f){ return LANG==='ar' ? (f.label_ar||f.label_en) : (f.label_en||f.label_ar); }
+function tplTitle(tp){ return LANG==='ar' ? (tp.title_ar||tp.title_en) : (tp.title_en||tp.title_ar); }
+function getSection(tbl){
+  if(SECTIONS[tbl]) return SECTIONS[tbl];
+  if(tbl.startsWith('tpl_')){
+    const tp = DB.template(tbl.slice(4));
+    if(!tp) return null;
+    const fields = [{k:'date',l:'f_date',type:'date',req:true},
+      ...(tp.fields||[]).map(f=>({k:f.k, tplField:f, type:f.type, opts:f.options||[], req:!!f.required}))];
+    return { icon:'tpl', tpl:tp, tableCols:['date',...(tp.fields||[]).map(f=>f.k)], fields };
+  }
+  return null;
+}
+/* label helper aware of template fields */
+function fieldLabel(tbl,f){ return f.tplField ? tplLabel(f.tplField) : t(f.l); }
+function sectionTitle(tbl){
+  const sec=getSection(tbl);
+  if(sec && sec.tpl) return tplTitle(sec.tpl);
+  return t(tbl);
+}
+function sectionIcon(tbl){
+  const sec=getSection(tbl);
+  if(sec && sec.tpl) return icon('tplCustom');
+  return icon(tbl);
+}
+
+
 /* nice display for finance/initiatives merged summary column */
 function summaryText(tbl,r){
   if(tbl==='finance'){
@@ -613,12 +694,14 @@ function cellVal(tbl,col,r){
   if(col==='channel'){ const arr=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
     return arr.map(c=>`<span class="chip b">${c}</span>`).join(' '); }
   if(col==='date') return r.date||'';
+  if(Array.isArray(r[col])) return r[col].map(x=>`<span class="chip b">${x}</span>`).join(' ');
   return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
 }
 function colLabel(tbl,col){
   if(col==='_summary') return t('f_details');
-  const f = SECTIONS[tbl].fields.find(f=>f.k===col);
-  return f? t(f.l) : col;
+  const sec=getSection(tbl); if(!sec) return col;
+  const f = sec.fields.find(f=>f.k===col);
+  return f? fieldLabel(tbl,f) : col;
 }
 
 console.log('app.js sections loaded');
@@ -648,12 +731,14 @@ function cellVal(tbl,col,r){
   if(col==='channel'){ const arr=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
     return arr.map(c=>`<span class="chip b">${c}</span>`).join(' '); }
   if(col==='date') return r.date||'';
+  if(Array.isArray(r[col])) return r[col].map(x=>`<span class="chip b">${x}</span>`).join(' ');
   return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
 }
 function colLabel(tbl,col){
   if(col==='_summary') return t('f_details');
-  const f = SECTIONS[tbl].fields.find(f=>f.k===col);
-  return f? t(f.l) : col;
+  const sec=getSection(tbl); if(!sec) return col;
+  const f = sec.fields.find(f=>f.k===col);
+  return f? fieldLabel(tbl,f) : col;
 }
 
 /* ---------------- AUTH ---------------- */
@@ -691,7 +776,7 @@ function renderLogin(){
           <circle class="ll-dot ll-dot3" cx="31" cy="15" r="3.4" fill="var(--gold)"/>
         </svg>
         <h1>${t('loginTitle')}</h1>
-        <div class="login-sub">SAUDI FRIENDSHIP · HOSPITALITY · CULTURE · TOURISM</div>
+        <div class="login-sub">${t('loginSub')}</div>
       </div>
       <div class="field"><label>${t('email')}</label><input id="loginEmail" type="email" autocomplete="username"></div>
       <div class="field"><label>${t('password')}</label><input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
@@ -733,6 +818,8 @@ console.log('cloud auth loaded');
 let PAGE='dashboard';
 /* ---- clean line-icon set (stroke inherits currentColor) ---- */
 const ICONS={
+  tplCustom:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12h6M12 9v6"/>',
+  templates:'<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><path d="M17 14v6M14 17h6"/>',
   dashboard:'<path d="M3 13h8V3H3zM13 21h8V3h-8zM3 21h8v-6H3z"/>',
   report:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
   daily:'<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
@@ -750,9 +837,10 @@ function navGroups(){
   const g=[
     {g:'nav_main', items:[['dashboard','dashboard'],['report','report']]},
     {g:'nav_data', items:[['daily','daily'],['letters','letters'],['meetings','meetings'],
-        ['media','media'],['finance','finance'],['initiatives','initiatives'],['quality','quality']]},
+        ['media','media'],['finance','finance'],['initiatives','initiatives'],['quality','quality'],
+        ...DB.templates().map(tp=>['tpl_'+tp.id,'tplCustom'])]},
   ];
-  if(ME.role==='admin') g.push({g:'nav_admin', items:[['users','users'],['audit','audit']]});
+  if(ME.role==='admin') g.push({g:'nav_admin', items:[['templates','templates'],['users','users'],['audit','audit']]});
   return g;
 }
 function renderApp(){
@@ -799,7 +887,7 @@ function renderNav(){
   document.getElementById('nav').innerHTML = navGroups().map(grp=>`
     <div class="group-label">${t(grp.g)}</div>
     ${grp.items.map(([id,ic])=>`<button class="${PAGE===id?'active':''}" onclick="go('${id}')">
-      ${icon(ic)}<span>${t(id)}</span></button>`).join('')}`).join('');
+      ${icon(ic)}<span>${id.startsWith('tpl_')?sectionTitle(id):t(id)}</span></button>`).join('')}`).join('');
 }
 function renderMonthSel(){
   const sel=document.getElementById('monthSel'); if(!sel) return;
@@ -817,18 +905,19 @@ function toggleMenu(force){
 function go(page){ PAGE=page; toggleMenu(false); renderNav(); renderPage(); }
 function renderPage(){
   const c=document.getElementById('content');
-  document.getElementById('pageTitle').textContent=t(PAGE);
+  document.getElementById('pageTitle').textContent = PAGE.startsWith('tpl_') ? sectionTitle(PAGE) : t(PAGE);
   renderMonthSel();
   if(PAGE==='dashboard') c.innerHTML=viewDashboard();
   else if(PAGE==='report') c.innerHTML=viewReport();
   else if(PAGE==='users') viewUsers().then(h=>c.innerHTML=h);
   else if(PAGE==='audit') viewAudit().then(h=>c.innerHTML=h);
+  else if(PAGE==='templates') c.innerHTML=viewTemplates();
   else c.innerHTML=viewSection(PAGE);
 }
 
 /* ---------------- SECTION PAGE ---------------- */
 function viewSection(tbl){
-  const sec=SECTIONS[tbl];
+  const sec=getSection(tbl); if(!sec){toast('section?','err');return '';}
   const rows=inMonth(DB.all(tbl)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const cols=sec.tableCols; const locked=isLocked();
   return `
@@ -837,7 +926,7 @@ function viewSection(tbl){
       ${locked?'':`<button class="btn btn-primary" onclick="openForm('${tbl}')">＋ ${t('add')}</button>`}
     </div>
     <div class="panel">
-      <div class="panel-head"><h3>${sec.icon} ${t(tbl)}</h3><span class="count">${rows.length}</span>
+      <div class="panel-head"><h3 style="display:flex;align-items:center;gap:8px">${sectionIcon(tbl)} ${sectionTitle(tbl)}</h3><span class="count">${rows.length}</span>
         <div class="spacer"></div>
         <button class="btn btn-ghost btn-sm" onclick="exportCsv('${tbl}')">${t('exportCsv')}</button></div>
       <div class="panel-body">
@@ -865,8 +954,8 @@ function rowActions(tbl,r,locked){
 let FORM_STATE={tbl:null,id:null};
 function openForm(tbl,rec){
   FORM_STATE={tbl,id:rec?rec.id:null};
-  const sec=SECTIONS[tbl];
-  document.getElementById('modalTitle').textContent=(rec?t('edit'):t('add'))+' · '+t(tbl);
+  const sec=getSection(tbl); if(!sec){toast('section?','err');return '';}
+  document.getElementById('modalTitle').textContent=(rec?t('edit'):t('add'))+' · '+sectionTitle(tbl);
   document.getElementById('modalBody').innerHTML=`<div class="form-grid" id="formGrid">
     ${sec.fields.map(f=>fieldHtml(f,rec)).join('')}</div>
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
@@ -876,10 +965,11 @@ function openForm(tbl,rec){
 }
 function fieldHtml(f,rec){
   const v = rec ? (rec[f.k]??'') : (f.type==='date'? new Date().toISOString().slice(0,10):'');
-  const full = (f.type==='text'&&['letterDetail','details','notes','recipient'].includes(f.k))||f.type==='multi';
-  const wrap=c=>`<div class="field ${full?'full':''}" data-show="${f.show||''}"><label>${t(f.l)}${f.req?' *':''}</label>${c}</div>`;
-  if(f.type==='select'){
-    const opts=f.opts.map(o=>{const[val,lk]=o.includes('|')?o.split('|'):[o,null];
+  const full = (f.type==='text'&&['letterDetail','details','notes','recipient'].includes(f.k))||f.type==='multi'||f.type==='long';
+  const wrap=c=>`<div class="field ${full?'full':''}" data-show="${f.show||''}"><label>${fieldLabel(FORM_STATE.tbl,f)}${f.req?' *':''}</label>${c}</div>`;
+  if(f.type==='select'||f.type==='yesno'){
+    const optList = f.type==='yesno' ? (LANG==='ar'?['نعم','لا']:['Yes','No']) : f.opts;
+    const opts=optList.map(o=>{const[val,lk]=String(o).includes('|')?o.split('|'):[o,null];
       return `<option value="${val}" ${v==val?'selected':''}>${lk?t(lk):o}</option>`;}).join('');
     return wrap(`<select data-f="${f.k}" onchange="applyConditional('${FORM_STATE.tbl}')"><option value="">—</option>${opts}</select>`);
   }
@@ -888,6 +978,9 @@ function fieldHtml(f,rec){
     return wrap(`<div style="display:flex;flex-wrap:wrap;gap:6px">${f.opts.map(o=>`
       <label style="display:flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px;background:var(--sand);padding:5px 9px;border-radius:8px;cursor:pointer">
       <input type="checkbox" data-multi="${f.k}" value="${o}" ${arr.includes(o)?'checked':''}> ${o}</label>`).join('')}</div>`);
+  }
+  if(f.type==='long'){
+    return wrap(`<textarea data-f="${f.k}" rows="3">${String(v).replace(/</g,'&lt;')}</textarea>`);
   }
   const type=f.type==='number'?'number':(f.type==='date'?'date':'text');
   return wrap(`<input type="${type}" data-f="${f.k}" value="${String(v).replace(/"/g,'&quot;')}">`);
@@ -900,7 +993,7 @@ function applyConditional(tbl){
     const s=el.getAttribute('data-show'); el.style.display=(!s||s===cur)?'flex':'none'; });
 }
 async function saveForm(){
-  const {tbl,id}=FORM_STATE; const sec=SECTIONS[tbl];
+  const {tbl,id}=FORM_STATE; const sec=getSection(tbl); if(!sec){toast('section?','err');return '';}
   const rec=id?{...DB.all(tbl).find(r=>r.id===id)}:{};
   for(const f of sec.fields){
     if(f.type==='multi') rec[f.k]=[...document.querySelectorAll(`[data-multi="${f.k}"]:checked`)].map(c=>c.value);
@@ -1033,7 +1126,27 @@ function viewReport(){
         designs.map(r=>[r.date,r.executor,r.details,r.category]))}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_quality')}</h2><div class="rep-sub">${t('r_qualitySub')}</div>
       ${rTbl([t('f_date'),t('f_partType'),t('f_details')],quality.map(r=>[r.date,r.partType,r.details]))}</div>
+    ${customReportSections(M)}
   </div>`;
+}
+/* custom template sections rendered natively in the report */
+function customReportSections(M){
+  return DB.templates().map(tp=>{
+    const rows=(CACHE['tpl_'+tp.id]||[]).filter(r=>monthOf(r.date)===M);
+    if(!rows.length) return '';
+    const flds=tp.fields||[];
+    const headers=[t('f_date'), ...flds.map(f=>tplLabel(f))];
+    const body=rows.map(r=>[r.date, ...flds.map(f=>{
+      const v=r[f.k];
+      return Array.isArray(v)? v.join(', ') : (v??'');
+    })]);
+    const parentTitle = tp.parent ? sectionTitle(tp.parent) : null;
+    return `<div class="rep-section">
+      <h2 class="rep-title">${parentTitle || tplTitle(tp)}</h2>
+      ${parentTitle? `<div class="rep-sub">${tplTitle(tp)}</div>`:''}
+      ${rTbl(headers, body)}
+    </div>`;
+  }).join('');
 }
 async function setStatus(s){ if(await DB.setStatus(CURRENT_MONTH,s)){ toast(t('saved'),'ok'); renderMonthSel(); renderPage(); } }
 
@@ -1073,10 +1186,128 @@ async function viewAudit(){
       :`<div class="empty"><p>${t('empty')}</p></div>`}</div></div>`;
 }
 
+/* ---------------- TEMPLATE BUILDER (admin) ---------------- */
+const FIELD_TYPES=[['text','ftText'],['long','ftLong'],['number','ftNumber'],['date','ftDate'],
+                   ['select','ftSelect'],['multi','ftMulti'],['yesno','ftYesno']];
+let TPL_EDIT=null;   // working copy while editing
+
+function viewTemplates(){
+  const tps=CACHE.templates;   // include archived, shown separately
+  const active=tps.filter(t=>!t.archived), archived=tps.filter(t=>t.archived);
+  const row=tp=>{
+    const n=(CACHE['tpl_'+tp.id]||[]).length;
+    return `<tr>
+      <td><b>${tp.title_ar}</b><div style="font-size:11.5px;color:var(--ink-soft)">${tp.title_en}</div></td>
+      <td>${tp.parent? sectionTitle(tp.parent):t('tplStandalone')}</td>
+      <td>${(tp.fields||[]).length}</td>
+      <td>${n}</td>
+      <td class="actions">
+        ${tp.archived
+          ? `<button class="btn-danger-ghost" onclick="tplArchive('${tp.id}',false)">${t('restore')}</button>`
+          : `<button class="btn-danger-ghost" onclick="openTplEditor('${tp.id}')">${t('edit')}</button>
+             <button class="btn-danger-ghost" onclick="tplArchive('${tp.id}',true)">${t('archive')}</button>`}
+      </td></tr>`;
+  };
+  return `
+  <div class="section-add"><button class="btn btn-primary" onclick="openTplEditor()">＋ ${t('newTemplate')}</button></div>
+  <div class="panel">
+    <div class="panel-head"><h3 style="display:flex;align-items:center;gap:8px">${icon('templates')} ${t('templates')}</h3>
+      <span class="count">${active.length}</span></div>
+    <div class="panel-body">
+      ${active.length? `<table class="tbl"><thead><tr>
+        <th>${t('tplTitleAr')}</th><th>${t('tplParent')}</th><th>${t('tplFields')}</th><th>${t('entriesCount')}</th><th></th>
+        </tr></thead><tbody>${active.map(row).join('')}</tbody></table>`
+      : `<div class="empty"><p>${t('noTemplates')}</p></div>`}
+    </div>
+  </div>
+  ${archived.length? `<div class="panel">
+    <div class="panel-head"><h3>${t('archived')}</h3><span class="count">${archived.length}</span></div>
+    <div class="panel-body"><table class="tbl"><tbody>${archived.map(row).join('')}</tbody></table></div>
+  </div>`:''}`;
+}
+
+function openTplEditor(id){
+  const src=id? DB.template(id):null;
+  TPL_EDIT = src? JSON.parse(JSON.stringify(src))
+                : {title_ar:'',title_en:'',parent:null,fields:[]};
+  document.getElementById('modalTitle').textContent = id? t('editTemplate'):t('newTemplate');
+  drawTplEditor();
+  document.getElementById('modalBg').classList.add('open');
+}
+function drawTplEditor(){
+  const e=TPL_EDIT;
+  const parentOpts=['', ...BUILTIN].map(p=>`<option value="${p}" ${e.parent===p||(!e.parent&&p==='')?'selected':''}>${p?sectionTitle(p):t('tplStandalone')}</option>`).join('');
+  const fieldRow=(f,i)=>`
+    <div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--sand)">
+      <div class="form-grid" style="gap:10px">
+        <div class="field"><label>${t('fLabelAr')}</label><input value="${(f.label_ar||'').replace(/"/g,'&quot;')}" onchange="TPL_EDIT.fields[${i}].label_ar=this.value"></div>
+        <div class="field"><label>${t('fLabelEn')}</label><input value="${(f.label_en||'').replace(/"/g,'&quot;')}" onchange="TPL_EDIT.fields[${i}].label_en=this.value"></div>
+        <div class="field"><label>${t('fType')}</label>
+          <select onchange="TPL_EDIT.fields[${i}].type=this.value;drawTplEditor()">
+            ${FIELD_TYPES.map(([v,l])=>`<option value="${v}" ${f.type===v?'selected':''}>${t(l)}</option>`).join('')}
+          </select></div>
+        <div class="field"><label>${t('fRequired')}</label>
+          <select onchange="TPL_EDIT.fields[${i}].required=this.value==='1'">
+            <option value="0" ${!f.required?'selected':''}>—</option>
+            <option value="1" ${f.required?'selected':''}>✓</option>
+          </select></div>
+        ${(f.type==='select'||f.type==='multi')? `
+        <div class="field full"><label>${t('fOptions')}</label>
+          <input value="${(f.options||[]).join(', ').replace(/"/g,'&quot;')}" placeholder="خيار 1, خيار 2, ..."
+            onchange="TPL_EDIT.fields[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">
+        <button class="btn-danger-ghost" ${i===0?'disabled':''} onclick="tplMove(${i},-1)">↑ ${t('moveUp')}</button>
+        <button class="btn-danger-ghost" ${i===e.fields.length-1?'disabled':''} onclick="tplMove(${i},1)">↓ ${t('moveDown')}</button>
+        <button class="btn-danger-ghost" onclick="TPL_EDIT.fields.splice(${i},1);drawTplEditor()">✕ ${t('removeField')}</button>
+      </div>
+    </div>`;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-grid">
+      <div class="field"><label>${t('tplTitleAr')} *</label><input id="tplAr" value="${e.title_ar.replace(/"/g,'&quot;')}" onchange="TPL_EDIT.title_ar=this.value"></div>
+      <div class="field"><label>${t('tplTitleEn')} *</label><input id="tplEn" value="${e.title_en.replace(/"/g,'&quot;')}" onchange="TPL_EDIT.title_en=this.value"></div>
+      <div class="field full"><label>${t('tplParent')}</label><select onchange="TPL_EDIT.parent=this.value||null">${parentOpts}</select></div>
+    </div>
+    <h3 style="margin:16px 0 10px;font-size:14px">${t('tplFields')}</h3>
+    <div id="tplFieldList">${e.fields.map(fieldRow).join('')}</div>
+    <button class="btn btn-ghost btn-sm" onclick="tplAddField()">＋ ${t('addField')}</button>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+      <button class="btn btn-primary" onclick="tplSave()">${t('save')}</button>
+    </div>`;
+}
+function tplAddField(){
+  TPL_EDIT.fields.push({k:'f'+Date.now().toString(36), label_ar:'', label_en:'', type:'text', options:[], required:false});
+  drawTplEditor();
+}
+function tplMove(i,dir){
+  const f=TPL_EDIT.fields; const j=i+dir;
+  if(j<0||j>=f.length)return;
+  [f[i],f[j]]=[f[j],f[i]]; drawTplEditor();
+}
+async function tplSave(){
+  const e=TPL_EDIT;
+  if(!e.title_ar.trim()||!e.title_en.trim()) return toast(t('tplNeedTitle'),'err');
+  if(!e.fields.length) return toast(t('tplNeedField'),'err');
+  for(const f of e.fields){
+    if(!f.label_ar.trim()&&!f.label_en.trim()) return toast(t('tplNeedLabels'),'err');
+    if(!f.label_ar.trim()) f.label_ar=f.label_en;
+    if(!f.label_en.trim()) f.label_en=f.label_ar;
+    if((f.type==='select'||f.type==='multi')&&!(f.options&&f.options.length)) return toast(t('tplNeedOptions'),'err');
+  }
+  if(await DB.saveTemplate(e)){ closeModal(); toast(t('saved'),'ok'); renderNav(); renderPage(); }
+}
+async function tplArchive(id,archived){
+  if(archived && !confirm(t('confirmArchive'))) return;
+  if(await DB.archiveTemplate(id,archived)){ toast(t('saved'),'ok');
+    if(PAGE==='tpl_'+id) PAGE='templates';
+    renderNav(); renderPage(); }
+}
+
 /* ---------------- EXPORT ---------------- */
 function csvEscape(v){v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
 function exportCsv(tbl){
-  const rows=inMonth(DB.all(tbl)); const sec=SECTIONS[tbl]; const keys=sec.fields.map(f=>f.k);
+  const rows=inMonth(DB.all(tbl)); const sec=getSection(tbl); if(!sec){toast('section?','err');return '';} const keys=sec.fields.map(f=>f.k);
   const lines=[keys.map(k=>colLabel(tbl,k)).map(csvEscape).join(',')];
   rows.forEach(r=>lines.push(keys.map(k=>csvEscape(Array.isArray(r[k])?r[k].join(' | '):r[k])).join(',')));
   const blob=new Blob(["\uFEFF"+lines.join('\n')],{type:'text/csv'});
