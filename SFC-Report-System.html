@@ -340,7 +340,8 @@ const T = {
     f_partner:"اسم الشريك", f_amount:"المبلغ", f_saleType:"نوع المبيعات", f_price:"السعر",
     f_item:"البند", f_value:"العدد/القيمة", f_initType:"النوع", f_executor:"المنفذ",
     f_category:"الفئة", f_partType:"نوع المشاركة",
-    ft_grant:"مشاريع الجهات المانحة", ft_partner:"دعم الشركاء",
+    ft_grant:"مشاريع الجهات المانحة", ft_report:"تقارير الجهات المانحة", ft_partner:"دعم الشركاء",
+    f_reportName:"نوع التقرير", r_reports:"تقارير الجهات المانحة",
     ft_sale:"المبيعات", ft_metric:"مؤشر (مستفيدون…)",
     it_design:"تصميم / مجتمع الابتكار", it_metric:"مؤشر المبادرات",
     r_admin:"الشؤون الإدارية", r_meetings:"الإجتماعات الداخلية و الخارجية",
@@ -406,7 +407,8 @@ const T = {
     f_partner:"Partner", f_amount:"Amount", f_saleType:"Sale item", f_price:"Price",
     f_item:"Item", f_value:"Count/Value", f_initType:"Type", f_executor:"Executor",
     f_category:"Category", f_partType:"Participation type",
-    ft_grant:"Grant projects", ft_partner:"Partner support",
+    ft_grant:"Grant projects", ft_report:"Donor reports", ft_partner:"Partner support",
+    f_reportName:"Report type", r_reports:"Donor Reports",
     ft_sale:"Sales", ft_metric:"Metric (beneficiaries…)",
     it_design:"Design / Innovation", it_metric:"Initiative metric",
     r_admin:"Administrative Affairs", r_meetings:"Internal & External Meetings",
@@ -612,10 +614,13 @@ const SECTIONS = {
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
       {k:'finType',l:'f_finType',type:'select',opts:[
-        'grant|ft_grant','partner|ft_partner','sale|ft_sale','metric|ft_metric'],req:true},
-      // grant
+        'grant|ft_grant','report|ft_report','partner|ft_partner','sale|ft_sale','metric|ft_metric'],req:true},
+      // grant (donor projects)
       {k:'projName',l:'f_projName',type:'text',show:'grant'},
       {k:'forEntity',l:'f_forEntity',type:'text',show:'grant'},
+      // report (donor reports / closings)
+      {k:'reportName',l:'f_reportName',type:'text',show:'report'},
+      {k:'reportEntity',l:'f_forEntity',type:'text',show:'report'},
       // partner
       {k:'partner',l:'f_partner',type:'text',show:'partner'},
       {k:'amount',l:'f_amount',type:'number',show:'partner'},
@@ -682,6 +687,7 @@ function sectionIcon(tbl){
 function summaryText(tbl,r){
   if(tbl==='finance'){
     if(r.finType==='grant')  return `${t('ft_grant')}: ${r.projName||''} — ${r.forEntity||''}`;
+    if(r.finType==='report') return `${t('ft_report')}: ${r.reportName||''} — ${r.reportEntity||''}`;
     if(r.finType==='partner')return `${t('ft_partner')}: ${r.partner||''} — ${r.amount||0}`;
     if(r.finType==='sale')   return `${t('ft_sale')}: ${r.saleType||''} ×${r.count||0} @${r.price||0}`;
     if(r.finType==='metric') return `${r.item||''}: ${r.value||''}`;
@@ -693,7 +699,7 @@ function summaryText(tbl,r){
   return '';
 }
 function typeBadge(tbl,r){
-  const map={grant:'ft_grant',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
+  const map={grant:'ft_grant',report:'ft_report',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
   const key = tbl==='finance'? r.finType : r.initType;
   return t(map[key]||key);
 }
@@ -721,6 +727,7 @@ console.log('app.js sections loaded');
 function summaryText(tbl,r){
   if(tbl==='finance'){
     if(r.finType==='grant')  return `${t('ft_grant')}: ${r.projName||''} — ${r.forEntity||''}`;
+    if(r.finType==='report') return `${t('ft_report')}: ${r.reportName||''} — ${r.reportEntity||''}`;
     if(r.finType==='partner')return `${t('ft_partner')}: ${r.partner||''} — ${r.amount||0}`;
     if(r.finType==='sale')   return `${t('ft_sale')}: ${r.saleType||''} ×${r.count||0} @${r.price||0}`;
     if(r.finType==='metric') return `${r.item||''}: ${r.value||''}`;
@@ -732,7 +739,7 @@ function summaryText(tbl,r){
   return '';
 }
 function typeBadge(tbl,r){
-  const map={grant:'ft_grant',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
+  const map={grant:'ft_grant',report:'ft_report',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
   const key = tbl==='finance'? r.finType : r.initType;
   return t(map[key]||key);
 }
@@ -1078,7 +1085,7 @@ function viewReport(){
         finance=f('finance'),init=f('initiatives'),quality=f('quality');
   const isAr=s=>/[\u0600-\u06FF]/.test(s||'');
   const commLocal=daily.filter(r=>isAr(r.recipient)), commIntl=daily.filter(r=>!isAr(r.recipient));
-  const grants=finance.filter(r=>r.finType==='grant'),partners=finance.filter(r=>r.finType==='partner'),
+  const grants=finance.filter(r=>r.finType==='grant'),reports=finance.filter(r=>r.finType==='report'),partners=finance.filter(r=>r.finType==='partner'),
         sales=finance.filter(r=>r.finType==='sale'),metrics=finance.filter(r=>r.finType==='metric'),
         designs=init.filter(r=>r.initType==='design');
 
@@ -1124,13 +1131,21 @@ function viewReport(){
       ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel')],
         commIntl.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel)]))}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_media')}</h2>
-      ${rTbl([t('f_date'),t('f_platform'),t('f_posts')],media.map(r=>[r.date,r.platform,r.posts]))}</div>
+      ${(()=>{ const byPlat={}; media.forEach(r=>{ if(r.platform) byPlat[r.platform]=(byPlat[r.platform]||0)+(Number(r.posts)||0); });
+        const rows=Object.entries(byPlat).map(([p,n])=>[p,n]);
+        return rTbl([t('f_platform'),t('f_posts')], rows); })()}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_fin')}</h2><div class="rep-sub">${t('r_grants')}</div>
       ${rTbl([t('f_date'),t('f_projName'),t('f_forEntity')],grants.map(r=>[r.date,r.projName,r.forEntity]))}
+      <div class="rep-sub" style="margin-top:22px">${t('r_reports')}</div>
+      ${rTbl([t('f_date'),t('f_reportName'),t('f_forEntity')],reports.map(r=>[r.date,r.reportName,r.reportEntity]))}
       <div class="rep-sub" style="margin-top:22px">${t('r_partners')}</div>
       ${rTbl([t('f_date'),t('f_partner'),t('f_amount')],partners.map(r=>[r.date,r.partner,r.amount]))}
       <div class="rep-sub" style="margin-top:22px">${t('r_sales')}</div>
-      ${rTbl([t('f_saleType'),t('f_count'),t('f_price')],sales.map(r=>[r.saleType,r.count,r.price]))}
+      ${(()=>{ const rows=sales.map(r=>[r.saleType,r.count,r.price]);
+        const total=sales.reduce((s,r)=>s+(Number(r.count)||0)*(Number(r.price)||0),0);
+        let tbl=rTbl([t('f_saleType'),t('f_count'),t('f_price')], rows);
+        if(rows.length) tbl=tbl.replace('</tbody>', `<tr style="font-weight:800;background:var(--green-soft)"><td colspan="3">${t('total')}</td><td>${total.toLocaleString()}</td></tr></tbody>`);
+        return tbl; })()}
       ${metrics.length?`<div class="rep-sub" style="margin-top:22px">${t('initiatives')}</div>
         ${rTbl([t('f_item'),t('f_value')],metrics.map(r=>[r.item,r.value]))}`:''}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_initiatives')}</h2>
