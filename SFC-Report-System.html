@@ -1120,20 +1120,20 @@ function viewReport(){
     </div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_meetings')}</div>
       ${rTbl([t('f_date'),t('f_place'),t('f_entity'),t('f_meetType'),t('f_attendance'),t('f_hours'),t('f_details')],
-        meetings.map(r=>[r.date,r.place,r.entity,r.meetType,r.attendance,r.hours,r.details]))}</div>
+        meetings.map(r=>[r.date,r.place,r.entity,r.meetType,r.attendance,r.hours,r.details]))}${nestedTpls('meetings',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_letters')}</div>
       ${rTbl([t('f_date'),t('f_letterCat'),t('f_letterDetail'),t('f_entity')],
-        letters.map(r=>[r.date,r.letterCat,r.letterDetail,r.entity]))}</div>
+        letters.map(r=>[r.date,r.letterCat,r.letterDetail,r.entity]))}${nestedTpls('letters',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commLocal')}</div>
       ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel'),t('f_details')],
         commLocal.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel),r.notes]))}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commIntl')}</div>
       ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel')],
-        commIntl.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel)]))}</div>
+        commIntl.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel)]))}${nestedTpls('daily',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_media')}</h2>
       ${(()=>{ const byPlat={}; media.forEach(r=>{ if(r.platform) byPlat[r.platform]=(byPlat[r.platform]||0)+(Number(r.posts)||0); });
         const rows=Object.entries(byPlat).map(([p,n])=>[p,n]);
-        return rTbl([t('f_platform'),t('f_posts')], rows); })()}</div>
+        return rTbl([t('f_platform'),t('f_posts')], rows); })()}${nestedTpls('media',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_fin')}</h2><div class="rep-sub">${t('r_grants')}</div>
       ${rTbl([t('f_date'),t('f_projName'),t('f_forEntity')],grants.map(r=>[r.date,r.projName,r.forEntity]))}
       <div class="rep-sub" style="margin-top:22px">${t('r_reports')}</div>
@@ -1147,31 +1147,45 @@ function viewReport(){
         if(rows.length) tbl=tbl.replace('</tbody>', `<tr style="font-weight:800;background:var(--green-soft)"><td colspan="3">${t('total')}</td><td>${total.toLocaleString()}</td></tr></tbody>`);
         return tbl; })()}
       ${metrics.length?`<div class="rep-sub" style="margin-top:22px">${t('initiatives')}</div>
-        ${rTbl([t('f_item'),t('f_value')],metrics.map(r=>[r.item,r.value]))}`:''}</div>
+        ${rTbl([t('f_item'),t('f_value')],metrics.map(r=>[r.item,r.value]))}`:''}${nestedTpls('finance',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_initiatives')}</h2>
       ${rTbl([t('f_date'),t('f_executor'),t('f_details'),t('f_category')],
-        designs.map(r=>[r.date,r.executor,r.details,r.category]))}</div>
+        designs.map(r=>[r.date,r.executor,r.details,r.category]))}${nestedTpls('initiatives',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_quality')}</h2><div class="rep-sub">${t('r_qualitySub')}</div>
-      ${rTbl([t('f_date'),t('f_partType'),t('f_details')],quality.map(r=>[r.date,r.partType,r.details]))}</div>
+      ${rTbl([t('f_date'),t('f_partType'),t('f_details')],quality.map(r=>[r.date,r.partType,r.details]))}${nestedTpls('quality',M)}</div>
     ${customReportSections(M)}
   </div>`;
 }
-/* custom template sections rendered natively in the report */
+/* build the sub-table HTML for a single template (no section wrapper) */
+function tplSubTable(tp, M){
+  const rows=(CACHE['tpl_'+tp.id]||[]).filter(r=>monthOf(r.date)===M);
+  if(!rows.length) return '';
+  const flds=tp.fields||[];
+  const headers=[t('f_date'), ...flds.map(f=>tplLabel(f))];
+  const body=rows.map(r=>[r.date, ...flds.map(f=>{
+    const v=r[f.k];
+    return Array.isArray(v)? v.join(', ') : (v??'');
+  })]);
+  return `<div class="rep-sub" style="margin-top:22px">${tplTitle(tp)}</div>
+    ${rTbl(headers, body)}`;
+}
+/* nested templates for a given built-in parent, rendered inside that parent's block */
+function nestedTpls(parentKey, M){
+  return DB.templates()
+    .filter(tp=>tp.parent===parentKey)
+    .map(tp=>tplSubTable(tp,M))
+    .join('');
+}
+/* standalone custom templates (no parent) — each its own section at the end */
 function customReportSections(M){
-  return DB.templates().map(tp=>{
-    const rows=(CACHE['tpl_'+tp.id]||[]).filter(r=>monthOf(r.date)===M);
-    if(!rows.length) return '';
-    const flds=tp.fields||[];
-    const headers=[t('f_date'), ...flds.map(f=>tplLabel(f))];
-    const body=rows.map(r=>[r.date, ...flds.map(f=>{
-      const v=r[f.k];
-      return Array.isArray(v)? v.join(', ') : (v??'');
-    })]);
-    const parentTitle = tp.parent ? sectionTitle(tp.parent) : null;
+  return DB.templates().filter(tp=>!tp.parent).map(tp=>{
+    const inner=tplSubTable(tp,M);
+    if(!inner) return '';
+    // strip the leading rep-sub label for standalone (title becomes the section h2)
+    const table=inner.replace(/^<div class="rep-sub"[^>]*>.*?<\/div>\s*/,'');
     return `<div class="rep-section">
-      <h2 class="rep-title">${parentTitle || tplTitle(tp)}</h2>
-      ${parentTitle? `<div class="rep-sub">${tplTitle(tp)}</div>`:''}
-      ${rTbl(headers, body)}
+      <h2 class="rep-title">${tplTitle(tp)}</h2>
+      ${table}
     </div>`;
   }).join('');
 }
