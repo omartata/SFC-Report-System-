@@ -143,8 +143,8 @@ body.dark .theme-btn .ico-moon{display:block}
 
 /* ---------- table ---------- */
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{background:var(--green-soft);color:var(--green-deep);font-weight:800;font-size:12px;padding:10px 12px;text-align:inherit;white-space:nowrap;border-bottom:1px solid var(--green-line)}
-.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{background:var(--green-soft);color:var(--green-deep);font-weight:800;font-size:12px;padding:10px 12px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--green-line)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:center}
 .tbl tr:last-child td{border-bottom:0}
 .tbl tr:hover td{background:#fafbfa}
 .tbl .num{color:var(--ink-soft);font-variant-numeric:tabular-nums;width:38px}
@@ -202,7 +202,7 @@ body.dark .theme-btn .ico-moon{display:block}
 .rep-title{text-align:center;color:var(--green-deep);margin-bottom:4px;font-size:26px}
 .rep-sub{text-align:center;color:var(--ink-soft);font-size:15px;font-weight:700;margin-bottom:20px}
 .rep-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
-.rep-tbl th{background:var(--green-soft);color:var(--green-deep);border:1px solid var(--green-line);padding:9px;font-weight:800}
+.rep-tbl th{background:var(--green-soft);color:var(--green-deep);border:1px solid var(--green-line);padding:9px;font-weight:800;text-align:center}
 .rep-tbl td{border:1px solid var(--line);padding:9px;text-align:center}
 .rep-empty{text-align:center;color:#b7bdb8;font-size:13px;padding:16px}
 
@@ -329,6 +329,8 @@ const T = {
     print:"طباعة / PDF", exportCsv:"تصدير CSV", total:"الإجمالي",
     d_activities:"إجمالي الأنشطة", d_reach:"الجهات المُرسل إليها",
     d_letters:"الخطابات الصادرة", d_meetings:"الاجتماعات",
+    d_posts:"منشورات الإعلام الداخلي", d_finance:"سجلات الموارد المالية",
+    d_init:"المبادرات والمشاريع", d_quality:"الجودة والجوائز", d_visits:"الزيارات",
     d_sales:"المبيعات (ريال)", d_benef:"المستفيدون",
     d_byChannel:"النشاط حسب القناة", d_byProgram:"النشاط حسب البرنامج",
     d_recent:"أحدث الأنشطة", by:"بواسطة",
@@ -414,6 +416,8 @@ const T = {
     print:"Print / PDF", exportCsv:"Export CSV", total:"Total",
     d_activities:"Total activities", d_reach:"Recipients reached",
     d_letters:"Letters issued", d_meetings:"Meetings",
+    d_posts:"Internal media posts", d_finance:"Financial records",
+    d_init:"Initiatives & projects", d_quality:"Quality & awards", d_visits:"Visits",
     d_sales:"Sales (SAR)", d_benef:"Beneficiaries",
     d_byChannel:"Activity by channel", d_byProgram:"Activity by program",
     d_recent:"Recent activity", by:"by",
@@ -1141,7 +1145,10 @@ console.log('cloud ui2 loaded');
 function sum(a,f){return a.reduce((s,r)=>s+(Number(f(r))||0),0);}
 function viewDashboard(){
   const daily=inMonth(DB.all('daily')), letters=inMonth(DB.all('letters')),
-        meetings=inMonth(DB.all('meetings')), finance=inMonth(DB.all('finance'));
+        meetings=inMonth(DB.all('meetings')), finance=inMonth(DB.all('finance')),
+        media=inMonth(DB.all('media')), init=inMonth(DB.all('initiatives')),
+        quality=inMonth(DB.all('quality')), visits=inMonth(DB.all('visits'));
+  const posts=sum(media,r=>Number(r.posts)||0);
   const sales=finance.filter(r=>r.finType==='sale');
   const salesTotal=sum(sales,r=>(r.count||0)*(r.price||0));
   const benef=finance.filter(r=>r.finType==='metric'&&/مستفيد|benef/i.test(r.item||''));
@@ -1154,6 +1161,9 @@ function viewDashboard(){
   <div class="stat-grid">
     ${stat('d_activities',daily.length,'')}${stat('d_reach',reach,'b')}
     ${stat('d_letters',letters.length,'')}${stat('d_meetings',meetings.length,'b')}
+    ${stat('d_posts',posts,'')}${stat('d_finance',finance.length,'b')}
+    ${stat('d_init',init.length,'')}${stat('d_quality',quality.length,'b')}
+    ${stat('d_visits',visits.length,'')}
     ${stat('d_sales',salesTotal.toLocaleString(),'g')}
     ${stat('d_benef',sum(benef,r=>parseInt(r.value)||0),'g')}</div>
   <div class="two-col">
@@ -1234,7 +1244,7 @@ function viewReport(){
         meetings.map(r=>[r.date,r.place,r.entity,(r.meetType?t(/person|حضور/i.test(r.meetType)?'mt_inperson':'mt_remote'):''),(r.meetNature?t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational'):''),r.attendance,r.hours,r.details]))}${nestedTpls('meetings',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_letters')}</div>
       ${rTbl([t('f_date'),t('f_letterCat'),t('f_letterDetail'),t('f_entity')],
-        letters.map(r=>[r.date,(r.letterCat?t(/out|صادر/i.test(r.letterCat)?'lc_outgoing':'lc_incoming'):''),r.letterDetail,r.entity]))}${nestedTpls('letters',M)}</div></div>
+        letters.map(r=>[r.date,(r.letterCat?t(/out|صادر/i.test(r.letterCat)?'lc_outgoing':'lc_incoming'):''),r.letterDetail,r.entity]))}${nestedTpls('letters',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commLocal')}</div>
       ${rTbl([t('f_date'),t('f_marketScope'),t('f_recipient'),t('f_count'),t('f_channel'),t('f_details')],
         commLocal.map(r=>[r.date,scopeLabel(r),r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel),r.notes]))}</div>
