@@ -321,6 +321,7 @@ const T = {
     letters:"الخطابات", meetings:"الاجتماعات", media:"الإعلام الداخلي",
     finance:"الموارد المالية", initiatives:"المبادرات والمشاريع",
     quality:"الجودة والجوائز", report:"التقرير الشهري",
+    visits:"الزيارات",
     users:"المستخدمون", audit:"سجل العمليات",
     add:"إضافة", edit:"تعديل", save:"حفظ", cancel:"إلغاء", del:"حذف",
     confirmDel:"حذف هذا السجل؟", saved:"تم الحفظ", deleted:"تم الحذف",
@@ -333,8 +334,16 @@ const T = {
     d_recent:"أحدث الأنشطة", by:"بواسطة",
     f_date:"التاريخ", f_program:"البرنامج", f_recipient:"الجهة المُرسل إليها",
     f_count:"العدد", f_channel:"طريقة الإرسال", f_contact:"الجوال / الإيميل", f_notes:"الملاحظات",
+    f_marketScope:"نوع التسويق",
+    ms_local:"تسويق محلي", ms_intl:"تسويق دولي",
+    f_visitor:"الجهة/الزائر", f_visitType:"نوع الزيارة", f_participants:"المشاركين", f_visitDetails:"تفاصيل الزيارة",
+    vt_internal:"داخلية", vt_external:"خارجية", r_visits:"الزيارات",
     f_letterCat:"فئة الخطاب", f_letterDetail:"تفاصيل الخطاب", f_entity:"الجهة",
     f_place:"المكان", f_meetType:"فئة الاجتماع", f_attendance:"عدد الحضور",
+    f_meetNature:"النوع", mn_planning:"اجتماع تخطيطي", mn_operational:"اجتماع تشغيلي",
+    lc_outgoing:"صادر", lc_incoming:"وارد",
+    mt_inperson:"حضوري", mt_remote:"عن بعد",
+    pf_x:"اكس", pf_instagram:"انستغرام", pf_tiktok:"تيك توك", pf_youtube:"يوتيوب", pf_linkedin:"لينكد إن",
     f_hours:"عدد الساعات", f_details:"التفاصيل", f_platform:"المنصة", f_posts:"عدد المنشورات",
     f_finType:"النوع", f_projName:"اسم المشروع", f_forEntity:"الجهة المقدمة له",
     f_partner:"اسم الشريك", f_amount:"المبلغ", f_saleType:"نوع المبيعات", f_price:"السعر",
@@ -343,7 +352,16 @@ const T = {
     ft_grant:"مشاريع الجهات المانحة", ft_report:"تقارير الجهات المانحة", ft_partner:"دعم الشركاء",
     f_reportName:"نوع التقرير", r_reports:"تقارير الجهات المانحة",
     ft_sale:"المبيعات", ft_metric:"مؤشر (مستفيدون…)",
+    ft_inkind:"التبرعات العينية",
+    f_inkindEntity:"الجهة", f_inkindDesc:"وصف الدعم", f_inkindAmount:"المبلغ المدعوم", r_inkind:"التبرعات العينية",
     it_design:"تصميم / مجتمع الابتكار", it_metric:"مؤشر المبادرات",
+    it_trips:"الرحلات التنموية الثقافية", it_ramadan:"أكتشف رمضان", it_juraa:"لقاء جرعة",
+    it_schooltours:"الجولات الثقافية للمدارس الدولية", it_passport:"جواز النجاح - English Cafe",
+    f_meetingTitle:"عنوان اللقاء", f_beneficiaries:"عدد المستفيدين", f_presenter:"المقدم",
+    f_schoolName:"اسم المدرسة", f_nationalities:"الجنسيات",
+    f_programName:"اسم البرنامج", f_meetPlace:"مكان اللقاء", f_guestName:"اسم الضيف", f_guestNat:"جنسية الضيف",
+    r_trips:"الرحلات التنموية الثقافية", r_ramadan:"أكتشف رمضان", r_juraa:"لقاء جرعة",
+    r_schooltours:"الجولات الثقافية للمدارس الدولية", r_passport:"جواز النجاح - English Cafe",
     r_admin:"الشؤون الإدارية", r_meetings:"الإجتماعات الداخلية و الخارجية",
     r_letters:"الخطابات", r_comm:"الاتصال والتسويق", r_commLocal:"الاتصال المحلي",
     r_commIntl:"الاتصال الدولي", r_media:"الإعلام (الداخلي)",
@@ -388,6 +406,7 @@ const T = {
     letters:"Letters", meetings:"Meetings", media:"Internal Media",
     finance:"Financial Resources", initiatives:"Initiatives & Projects",
     quality:"Quality & Awards", report:"Monthly Report",
+    visits:"Visits",
     users:"Users", audit:"Audit Log",
     add:"Add", edit:"Edit", save:"Save", cancel:"Cancel", del:"Delete",
     confirmDel:"Delete this record?", saved:"Saved", deleted:"Deleted",
@@ -400,8 +419,16 @@ const T = {
     d_recent:"Recent activity", by:"by",
     f_date:"Date", f_program:"Program", f_recipient:"Recipient",
     f_count:"Count", f_channel:"Channel", f_contact:"Phone / Email", f_notes:"Notes",
+    f_marketScope:"Marketing Type",
+    ms_local:"Local", ms_intl:"International",
+    f_visitor:"Visitor / Entity", f_visitType:"Visit Type", f_participants:"Participants", f_visitDetails:"Visit Details",
+    vt_internal:"Internal", vt_external:"External", r_visits:"Visits",
     f_letterCat:"Letter type", f_letterDetail:"Letter details", f_entity:"Entity",
     f_place:"Place", f_meetType:"Meeting type", f_attendance:"Attendance",
+    f_meetNature:"Type", mn_planning:"Planning Meeting", mn_operational:"Operational Meeting",
+    lc_outgoing:"Outgoing", lc_incoming:"Incoming",
+    mt_inperson:"In-person", mt_remote:"Remote",
+    pf_x:"X", pf_instagram:"Instagram", pf_tiktok:"TikTok", pf_youtube:"YouTube", pf_linkedin:"LinkedIn",
     f_hours:"Hours", f_details:"Details", f_platform:"Platform", f_posts:"Posts",
     f_finType:"Type", f_projName:"Project name", f_forEntity:"Provided to",
     f_partner:"Partner", f_amount:"Amount", f_saleType:"Sale item", f_price:"Price",
@@ -410,7 +437,16 @@ const T = {
     ft_grant:"Grant projects", ft_report:"Donor reports", ft_partner:"Partner support",
     f_reportName:"Report type", r_reports:"Donor Reports",
     ft_sale:"Sales", ft_metric:"Metric (beneficiaries…)",
+    ft_inkind:"In-Kind Donations",
+    f_inkindEntity:"Entity", f_inkindDesc:"Support Description", f_inkindAmount:"Supported Amount", r_inkind:"In-Kind Donations",
     it_design:"Design / Innovation", it_metric:"Initiative metric",
+    it_trips:"Cultural Development Trips", it_ramadan:"Discover Ramadan", it_juraa:"Juraa Meeting",
+    it_schooltours:"Intl. School Cultural Tours", it_passport:"Success Passport - English Cafe",
+    f_meetingTitle:"Meeting Title", f_beneficiaries:"Beneficiaries", f_presenter:"Presenter",
+    f_schoolName:"School Name", f_nationalities:"Nationalities",
+    f_programName:"Program Name", f_meetPlace:"Meeting Place", f_guestName:"Guest Name", f_guestNat:"Guest Nationality",
+    r_trips:"Cultural Development Trips", r_ramadan:"Discover Ramadan", r_juraa:"Juraa Meeting",
+    r_schooltours:"Intl. School Cultural Tours", r_passport:"Success Passport - English Cafe",
     r_admin:"Administrative Affairs", r_meetings:"Internal & External Meetings",
     r_letters:"Letters", r_comm:"Communication & Marketing", r_commLocal:"Local Communication",
     r_commIntl:"International Communication", r_media:"Media (Internal)",
@@ -466,8 +502,8 @@ const fmtMonth = ym => { if(!ym) return ''; const [y,m]=ym.split('-');
    In-memory CACHE mirrors the DB for synchronous rendering; every
    mutation writes to Supabase then refreshes the cache. entries table
    stores {section, entry_date, data{}}, so we flatten to Stage-1 shape. */
-const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[], status:{}, templates:[] };
-const BUILTIN = ['daily','letters','meetings','media','finance','initiatives','quality'];
+const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[],visits:[], status:{}, templates:[] };
+const BUILTIN = ['daily','letters','meetings','media','finance','initiatives','quality','visits'];
 
 const DB = {
   all(tbl){ return CACHE[tbl]||[]; },
@@ -569,10 +605,11 @@ const canEditRow = r => ME.role==='admin' || r._byId===ME.id;
 console.log('cloud core loaded');
 const SECTIONS = {
   daily:{
-    icon:'📣', tableCols:['date','program','recipient','count','channel','contact','notes'],
+    icon:'📣', tableCols:['date','program','marketScope','recipient','count','channel','contact','notes'],
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
       {k:'program',l:'f_program',type:'select',opts:PROGRAMS,req:true},
+      {k:'marketScope',l:'f_marketScope',type:'select',opts:['local|ms_local','intl|ms_intl']},
       {k:'recipient',l:'f_recipient',type:'text',req:true},
       {k:'count',l:'f_count',type:'number'},
       {k:'channel',l:'f_channel',type:'multi',opts:CHANNELS},
@@ -584,18 +621,19 @@ const SECTIONS = {
     icon:'✉️', tableCols:['date','letterCat','letterDetail','entity'],
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
-      {k:'letterCat',l:'f_letterCat',type:'select',opts:['صادر / Outgoing','وارد / Incoming']},
+      {k:'letterCat',l:'f_letterCat',type:'select',opts:['outgoing|lc_outgoing','incoming|lc_incoming']},
       {k:'letterDetail',l:'f_letterDetail',type:'text',req:true},
       {k:'entity',l:'f_entity',type:'text',req:true},
     ]
   },
   meetings:{
-    icon:'🤝', tableCols:['date','place','entity','meetType','attendance','hours','details'],
+    icon:'🤝', tableCols:['date','place','entity','meetType','meetNature','attendance','hours','details'],
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
       {k:'place',l:'f_place',type:'text'},
       {k:'entity',l:'f_entity',type:'text',req:true},
-      {k:'meetType',l:'f_meetType',type:'select',opts:['حضوري / In-person','عن بعد / Remote']},
+      {k:'meetType',l:'f_meetType',type:'select',opts:['inperson|mt_inperson','remote|mt_remote']},
+      {k:'meetNature',l:'f_meetNature',type:'select',opts:['planning|mn_planning','operational|mn_operational']},
       {k:'attendance',l:'f_attendance',type:'number'},
       {k:'hours',l:'f_hours',type:'number'},
       {k:'details',l:'f_details',type:'text'},
@@ -605,7 +643,7 @@ const SECTIONS = {
     icon:'📊', tableCols:['date','platform','posts'],
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
-      {k:'platform',l:'f_platform',type:'select',opts:['X (اكس)','Instagram (انستغرام)','TikTok (تيك توك)','YouTube (يوتيوب)','LinkedIn (لينكد ان)']},
+      {k:'platform',l:'f_platform',type:'select',opts:['x|pf_x','instagram|pf_instagram','tiktok|pf_tiktok','youtube|pf_youtube','linkedin|pf_linkedin']},
       {k:'posts',l:'f_posts',type:'number',req:true},
     ]
   },
@@ -614,7 +652,7 @@ const SECTIONS = {
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
       {k:'finType',l:'f_finType',type:'select',opts:[
-        'grant|ft_grant','report|ft_report','partner|ft_partner','sale|ft_sale','metric|ft_metric'],req:true},
+        'grant|ft_grant','report|ft_report','partner|ft_partner','sale|ft_sale','inkind|ft_inkind','metric|ft_metric'],req:true},
       // grant (donor projects)
       {k:'projName',l:'f_projName',type:'text',show:'grant'},
       {k:'forEntity',l:'f_forEntity',type:'text',show:'grant'},
@@ -628,6 +666,10 @@ const SECTIONS = {
       {k:'saleType',l:'f_saleType',type:'text',show:'sale'},
       {k:'count',l:'f_count',type:'number',show:'sale'},
       {k:'price',l:'f_price',type:'number',show:'sale'},
+      // in-kind donations
+      {k:'inkindEntity',l:'f_inkindEntity',type:'text',show:'inkind'},
+      {k:'inkindDesc',l:'f_inkindDesc',type:'text',show:'inkind'},
+      {k:'inkindAmount',l:'f_inkindAmount',type:'number',show:'inkind'},
       // metric
       {k:'item',l:'f_item',type:'text',show:'metric'},
       {k:'value',l:'f_value',type:'text',show:'metric'},
@@ -637,10 +679,30 @@ const SECTIONS = {
     icon:'🚀', tableCols:['date','initType','_summary'],
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
-      {k:'initType',l:'f_initType',type:'select',opts:['design|it_design','metric|it_metric'],req:true},
+      {k:'initType',l:'f_initType',type:'select',opts:['design|it_design','trips|it_trips','ramadan|it_ramadan','juraa|it_juraa','schooltours|it_schooltours','passport|it_passport','metric|it_metric'],req:true},
       {k:'details',l:'f_details',type:'text',show:'design'},
       {k:'executor',l:'f_executor',type:'text',show:'design'},
       {k:'category',l:'f_category',type:'text',show:'design'},
+      // الرحلات التنموية الثقافية
+      {k:'tripTitle',l:'f_meetingTitle',type:'text',show:'trips'},
+      {k:'tripBenef',l:'f_beneficiaries',type:'number',show:'trips'},
+      // أكتشف رمضان
+      {k:'ramadanTitle',l:'f_meetingTitle',type:'text',show:'ramadan'},
+      {k:'ramadanBenef',l:'f_beneficiaries',type:'number',show:'ramadan'},
+      // لقاء جرعة
+      {k:'juraaTitle',l:'f_meetingTitle',type:'text',show:'juraa'},
+      {k:'juraaPresenter',l:'f_presenter',type:'text',show:'juraa'},
+      {k:'juraaBenef',l:'f_beneficiaries',type:'number',show:'juraa'},
+      // الجولات الثقافية للمدارس الدولية
+      {k:'schoolName',l:'f_schoolName',type:'text',show:'schooltours'},
+      {k:'schoolNats',l:'f_nationalities',type:'number',show:'schooltours'},
+      {k:'schoolBenef',l:'f_beneficiaries',type:'number',show:'schooltours'},
+      // جواز النجاح - English Cafe
+      {k:'passProgram',l:'f_programName',type:'text',show:'passport'},
+      {k:'passPlace',l:'f_meetPlace',type:'text',show:'passport'},
+      {k:'passGuest',l:'f_guestName',type:'text',show:'passport'},
+      {k:'passGuestNat',l:'f_guestNat',type:'text',show:'passport'},
+      {k:'passBenef',l:'f_beneficiaries',type:'number',show:'passport'},
       {k:'item',l:'f_item',type:'text',show:'metric'},
       {k:'value',l:'f_value',type:'text',show:'metric'},
     ]
@@ -653,11 +715,29 @@ const SECTIONS = {
       {k:'details',l:'f_details',type:'text',req:true},
     ]
   },
+  visits:{
+    icon:'🚪', tableCols:['date','visitor','visitType','participants','visitDetails'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'visitor',l:'f_visitor',type:'text',req:true},
+      {k:'visitType',l:'f_visitType',type:'select',opts:['internal|vt_internal','external|vt_external']},
+      {k:'participants',l:'f_participants',type:'number'},
+      {k:'visitDetails',l:'f_visitDetails',type:'long'},
+    ]
+  },
 };
 
 /* ---- resolver: built-in key OR 'tpl_<id>' -> section definition ---- */
 function tplLabel(f){ return LANG==='ar' ? (f.label_ar||f.label_en) : (f.label_en||f.label_ar); }
 function tplTitle(tp){ return LANG==='ar' ? (tp.title_ar||tp.title_en) : (tp.title_en||tp.title_ar); }
+function platLabel(v){ if(!v) return '';
+  const s=String(v).toLowerCase();
+  if(/instagram|\u0627\u0646\u0633\u062a\u063a\u0631\u0627\u0645/.test(s)) return t('pf_instagram');
+  if(/tiktok|\u062a\u064a\u0643/.test(s)) return t('pf_tiktok');
+  if(/youtube|\u064a\u0648\u062a\u064a\u0648\u0628/.test(s)) return t('pf_youtube');
+  if(/linkedin|\u0644\u064a\u0646\u0643\u062f/.test(s)) return t('pf_linkedin');
+  if(/^x$|\(\u0627\u0643\u0633\)|twitter/.test(s)) return t('pf_x');
+  return v; }
 function getSection(tbl){
   if(SECTIONS[tbl]) return SECTIONS[tbl];
   if(tbl.startsWith('tpl_')){
@@ -690,16 +770,22 @@ function summaryText(tbl,r){
     if(r.finType==='report') return `${t('ft_report')}: ${r.reportName||''} — ${r.reportEntity||''}`;
     if(r.finType==='partner')return `${t('ft_partner')}: ${r.partner||''} — ${r.amount||0}`;
     if(r.finType==='sale')   return `${t('ft_sale')}: ${r.saleType||''} ×${r.count||0} @${r.price||0}`;
+    if(r.finType==='inkind') return `${t('ft_inkind')}: ${r.inkindEntity||''} — ${r.inkindDesc||''} — ${r.inkindAmount||0}`;
     if(r.finType==='metric') return `${r.item||''}: ${r.value||''}`;
   }
   if(tbl==='initiatives'){
     if(r.initType==='design')return `${r.details||''}${r.executor?' — '+r.executor:''}`;
+    if(r.initType==='trips')return `${r.tripTitle||''} — ${t('f_beneficiaries')}: ${r.tripBenef||0}`;
+    if(r.initType==='ramadan')return `${r.ramadanTitle||''} — ${t('f_beneficiaries')}: ${r.ramadanBenef||0}`;
+    if(r.initType==='juraa')return `${r.juraaTitle||''}${r.juraaPresenter?' — '+r.juraaPresenter:''} — ${t('f_beneficiaries')}: ${r.juraaBenef||0}`;
+    if(r.initType==='schooltours')return `${r.schoolName||''} — ${t('f_beneficiaries')}: ${r.schoolBenef||0}`;
+    if(r.initType==='passport')return `${r.passGuest||''}${r.passGuestNat?' ('+r.passGuestNat+')':''} — ${r.passProgram||''}`;
     if(r.initType==='metric')return `${r.item||''}: ${r.value||''}`;
   }
   return '';
 }
 function typeBadge(tbl,r){
-  const map={grant:'ft_grant',report:'ft_report',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
+  const map={grant:'ft_grant',report:'ft_report',partner:'ft_partner',sale:'ft_sale',inkind:'ft_inkind',metric:(tbl==='finance'?'ft_metric':'it_metric'),design:'it_design',trips:'it_trips',ramadan:'it_ramadan',juraa:'it_juraa',schooltours:'it_schooltours',passport:'it_passport'};
   const key = tbl==='finance'? r.finType : r.initType;
   return t(map[key]||key);
 }
@@ -712,6 +798,12 @@ function cellVal(tbl,col,r){
   if(col==='channel'){ const arr=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
     return arr.map(c=>`<span class="chip b">${c}</span>`).join(' '); }
   if(col==='date') return r.date||'';
+  if(col==='marketScope') return r.marketScope? `<span class="chip b">${t(/local|محلي/i.test(r.marketScope)?'ms_local':'ms_intl')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='visitType') return r.visitType? `<span class="chip b">${t(/internal|داخل/i.test(r.visitType)?'vt_internal':'vt_external')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='meetNature') return r.meetNature? `<span class="chip b">${t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='letterCat'){ const k=/out|صادر/i.test(r.letterCat||'')?'lc_outgoing':(/in|وارد/i.test(r.letterCat||'')?'lc_incoming':null); return k?`<span class="chip b">${t(k)}</span>`:(r.letterCat||'<span style="color:#c3c8c3">—</span>'); }
+  if(col==='meetType'){ const k=/person|حضور/i.test(r.meetType||'')?'mt_inperson':(/remote|بعد/i.test(r.meetType||'')?'mt_remote':null); return k?`<span class="chip b">${t(k)}</span>`:(r.meetType||'<span style="color:#c3c8c3">—</span>'); }
+  if(col==='platform'){ return r.platform? platLabel(r.platform) : '<span style="color:#c3c8c3">—</span>'; }
   if(Array.isArray(r[col])) return r[col].map(x=>`<span class="chip b">${x}</span>`).join(' ');
   return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
 }
@@ -730,16 +822,22 @@ function summaryText(tbl,r){
     if(r.finType==='report') return `${t('ft_report')}: ${r.reportName||''} — ${r.reportEntity||''}`;
     if(r.finType==='partner')return `${t('ft_partner')}: ${r.partner||''} — ${r.amount||0}`;
     if(r.finType==='sale')   return `${t('ft_sale')}: ${r.saleType||''} ×${r.count||0} @${r.price||0}`;
+    if(r.finType==='inkind') return `${t('ft_inkind')}: ${r.inkindEntity||''} — ${r.inkindDesc||''} — ${r.inkindAmount||0}`;
     if(r.finType==='metric') return `${r.item||''}: ${r.value||''}`;
   }
   if(tbl==='initiatives'){
     if(r.initType==='design')return `${r.details||''}${r.executor?' — '+r.executor:''}`;
+    if(r.initType==='trips')return `${r.tripTitle||''} — ${t('f_beneficiaries')}: ${r.tripBenef||0}`;
+    if(r.initType==='ramadan')return `${r.ramadanTitle||''} — ${t('f_beneficiaries')}: ${r.ramadanBenef||0}`;
+    if(r.initType==='juraa')return `${r.juraaTitle||''}${r.juraaPresenter?' — '+r.juraaPresenter:''} — ${t('f_beneficiaries')}: ${r.juraaBenef||0}`;
+    if(r.initType==='schooltours')return `${r.schoolName||''} — ${t('f_beneficiaries')}: ${r.schoolBenef||0}`;
+    if(r.initType==='passport')return `${r.passGuest||''}${r.passGuestNat?' ('+r.passGuestNat+')':''} — ${r.passProgram||''}`;
     if(r.initType==='metric')return `${r.item||''}: ${r.value||''}`;
   }
   return '';
 }
 function typeBadge(tbl,r){
-  const map={grant:'ft_grant',report:'ft_report',partner:'ft_partner',sale:'ft_sale',metric:'ft_metric',design:'it_design'};
+  const map={grant:'ft_grant',report:'ft_report',partner:'ft_partner',sale:'ft_sale',inkind:'ft_inkind',metric:(tbl==='finance'?'ft_metric':'it_metric'),design:'it_design',trips:'it_trips',ramadan:'it_ramadan',juraa:'it_juraa',schooltours:'it_schooltours',passport:'it_passport'};
   const key = tbl==='finance'? r.finType : r.initType;
   return t(map[key]||key);
 }
@@ -750,6 +848,12 @@ function cellVal(tbl,col,r){
   if(col==='channel'){ const arr=Array.isArray(r.channel)?r.channel:(r.channel?[r.channel]:[]);
     return arr.map(c=>`<span class="chip b">${c}</span>`).join(' '); }
   if(col==='date') return r.date||'';
+  if(col==='marketScope') return r.marketScope? `<span class="chip b">${t(/local|محلي/i.test(r.marketScope)?'ms_local':'ms_intl')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='visitType') return r.visitType? `<span class="chip b">${t(/internal|داخل/i.test(r.visitType)?'vt_internal':'vt_external')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='meetNature') return r.meetNature? `<span class="chip b">${t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='letterCat'){ const k=/out|صادر/i.test(r.letterCat||'')?'lc_outgoing':(/in|وارد/i.test(r.letterCat||'')?'lc_incoming':null); return k?`<span class="chip b">${t(k)}</span>`:(r.letterCat||'<span style="color:#c3c8c3">—</span>'); }
+  if(col==='meetType'){ const k=/person|حضور/i.test(r.meetType||'')?'mt_inperson':(/remote|بعد/i.test(r.meetType||'')?'mt_remote':null); return k?`<span class="chip b">${t(k)}</span>`:(r.meetType||'<span style="color:#c3c8c3">—</span>'); }
+  if(col==='platform'){ return r.platform? platLabel(r.platform) : '<span style="color:#c3c8c3">—</span>'; }
   if(Array.isArray(r[col])) return r[col].map(x=>`<span class="chip b">${x}</span>`).join(' ');
   return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
 }
@@ -848,6 +952,7 @@ const ICONS={
   finance:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5a2.5 2 0 0 1 2.5-1.5c1.4 0 2.5.7 2.5 1.7s-1 1.6-2.5 1.8-2.5.9-2.5 1.8 1.1 1.7 2.5 1.7a2.5 2 0 0 0 2.5-1.5"/>',
   initiatives:'<path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2 0-2.8a2 2 0 0 0-3 .8z"/><path d="M12 15l-3-3a11 11 0 0 1 8-8c1.5 0 3 .3 3 .3s.3 1.5.3 3a11 11 0 0 1-8 8z"/><path d="M9 12H4s.5-2.8 2-4 5 0 5 0M12 15v5s2.8-.5 4-2 0-5 0-5"/>',
   quality:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/>',
+  visits:'<path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 12h.01"/>',
   users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
   audit:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
 };
@@ -856,7 +961,7 @@ function navGroups(){
   const g=[
     {g:'nav_main', items:[['dashboard','dashboard'],['report','report']]},
     {g:'nav_data', items:[['daily','daily'],['letters','letters'],['meetings','meetings'],
-        ['media','media'],['finance','finance'],['initiatives','initiatives'],['quality','quality'],
+        ['media','media'],['finance','finance'],['initiatives','initiatives'],['quality','quality'],['visits','visits'],
         ...DB.templates().map(tp=>['tpl_'+tp.id,'tplCustom'])]},
   ];
   if(ME.role==='admin') g.push({g:'nav_admin', items:[['templates','templates'],['users','users'],['audit','audit']]});
@@ -1082,12 +1187,18 @@ function viewReport(){
   const M=CURRENT_MONTH, status=DB.status(M), rec=DB.statusRec(M);
   const f=tbl=>DB.all(tbl).filter(r=>monthOf(r.date)===M);
   const letters=f('letters'),meetings=f('meetings'),media=f('media'),daily=f('daily'),
-        finance=f('finance'),init=f('initiatives'),quality=f('quality');
+        finance=f('finance'),init=f('initiatives'),quality=f('quality'),visits=f('visits');
   const isAr=s=>/[\u0600-\u06FF]/.test(s||'');
-  const commLocal=daily.filter(r=>isAr(r.recipient)), commIntl=daily.filter(r=>!isAr(r.recipient));
+  const scopeOf=r=> r.marketScope ? (/local|محلي/i.test(r.marketScope)?'local':'intl') : (isAr(r.recipient)?'local':'intl');
+  const scopeLabel=r=> r.marketScope ? t(/local|محلي/i.test(r.marketScope)?'ms_local':'ms_intl') : '';
+  const commLocal=daily.filter(r=>scopeOf(r)==='local'), commIntl=daily.filter(r=>scopeOf(r)==='intl');
   const grants=finance.filter(r=>r.finType==='grant'),reports=finance.filter(r=>r.finType==='report'),partners=finance.filter(r=>r.finType==='partner'),
+        inkind=finance.filter(r=>r.finType==='inkind'),
         sales=finance.filter(r=>r.finType==='sale'),metrics=finance.filter(r=>r.finType==='metric'),
-        designs=init.filter(r=>r.initType==='design');
+        designs=init.filter(r=>r.initType==='design'),
+        itTrips=init.filter(r=>r.initType==='trips'), itRamadan=init.filter(r=>r.initType==='ramadan'),
+        itJuraa=init.filter(r=>r.initType==='juraa'), itSchool=init.filter(r=>r.initType==='schooltours'),
+        itPassport=init.filter(r=>r.initType==='passport');
 
   // status control bar (role-aware)
   let ctl='';
@@ -1119,20 +1230,20 @@ function viewReport(){
       <div style="color:var(--ink-soft);font-size:12px;letter-spacing:3px">HOSPITALITY · CULTURE · TOURISM</div>
     </div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_meetings')}</div>
-      ${rTbl([t('f_date'),t('f_place'),t('f_entity'),t('f_meetType'),t('f_attendance'),t('f_hours'),t('f_details')],
-        meetings.map(r=>[r.date,r.place,r.entity,r.meetType,r.attendance,r.hours,r.details]))}${nestedTpls('meetings',M)}</div>
+      ${rTbl([t('f_date'),t('f_place'),t('f_entity'),t('f_meetType'),t('f_meetNature'),t('f_attendance'),t('f_hours'),t('f_details')],
+        meetings.map(r=>[r.date,r.place,r.entity,(r.meetType?t(/person|حضور/i.test(r.meetType)?'mt_inperson':'mt_remote'):''),(r.meetNature?t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational'):''),r.attendance,r.hours,r.details]))}${nestedTpls('meetings',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_letters')}</div>
       ${rTbl([t('f_date'),t('f_letterCat'),t('f_letterDetail'),t('f_entity')],
-        letters.map(r=>[r.date,r.letterCat,r.letterDetail,r.entity]))}${nestedTpls('letters',M)}</div>
+        letters.map(r=>[r.date,(r.letterCat?t(/out|صادر/i.test(r.letterCat)?'lc_outgoing':'lc_incoming'):''),r.letterDetail,r.entity]))}${nestedTpls('letters',M)}</div></div>
     <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commLocal')}</div>
-      ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel'),t('f_details')],
-        commLocal.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel),r.notes]))}</div>
+      ${rTbl([t('f_date'),t('f_marketScope'),t('f_recipient'),t('f_count'),t('f_channel'),t('f_details')],
+        commLocal.map(r=>[r.date,scopeLabel(r),r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel),r.notes]))}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commIntl')}</div>
-      ${rTbl([t('f_date'),t('f_recipient'),t('f_count'),t('f_channel')],
-        commIntl.map(r=>[r.date,r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel)]))}${nestedTpls('daily',M)}</div>
+      ${rTbl([t('f_date'),t('f_marketScope'),t('f_recipient'),t('f_count'),t('f_channel')],
+        commIntl.map(r=>[r.date,scopeLabel(r),r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel)]))}${nestedTpls('daily',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_media')}</h2>
       ${(()=>{ const byPlat={}; media.forEach(r=>{ if(r.platform) byPlat[r.platform]=(byPlat[r.platform]||0)+(Number(r.posts)||0); });
-        const rows=Object.entries(byPlat).map(([p,n])=>[p,n]);
+        const rows=Object.entries(byPlat).map(([p,n])=>[platLabel(p),n]);
         return rTbl([t('f_platform'),t('f_posts')], rows); })()}${nestedTpls('media',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_fin')}</h2><div class="rep-sub">${t('r_grants')}</div>
       ${rTbl([t('f_date'),t('f_projName'),t('f_forEntity')],grants.map(r=>[r.date,r.projName,r.forEntity]))}
@@ -1146,13 +1257,32 @@ function viewReport(){
         let tbl=rTbl([t('f_saleType'),t('f_count'),t('f_price')], rows);
         if(rows.length) tbl=tbl.replace('</tbody>', `<tr style="font-weight:800;background:var(--green-soft)"><td colspan="3">${t('total')}</td><td>${total.toLocaleString()}</td></tr></tbody>`);
         return tbl; })()}
+      ${inkind.length?`<div class="rep-sub" style="margin-top:22px">${t('r_inkind')}</div>
+        ${(()=>{ const rows=inkind.map(r=>[r.date,r.inkindEntity,r.inkindDesc,r.inkindAmount]);
+          const total=inkind.reduce((s,r)=>s+(Number(r.inkindAmount)||0),0);
+          let tbl=rTbl([t('f_date'),t('f_inkindEntity'),t('f_inkindDesc'),t('f_inkindAmount')], rows);
+          if(rows.length) tbl=tbl.replace('</tbody>', `<tr style="font-weight:800;background:var(--green-soft)"><td colspan="4">${t('total')}</td><td>${total.toLocaleString()}</td></tr></tbody>`);
+          return tbl; })()}`:''}
       ${metrics.length?`<div class="rep-sub" style="margin-top:22px">${t('initiatives')}</div>
         ${rTbl([t('f_item'),t('f_value')],metrics.map(r=>[r.item,r.value]))}`:''}${nestedTpls('finance',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_initiatives')}</h2>
       ${rTbl([t('f_date'),t('f_executor'),t('f_details'),t('f_category')],
-        designs.map(r=>[r.date,r.executor,r.details,r.category]))}${nestedTpls('initiatives',M)}</div>
+        designs.map(r=>[r.date,r.executor,r.details,r.category]))}
+      ${itTrips.length?`<div class="rep-sub" style="margin-top:22px">${t('r_trips')}</div>
+        ${rTbl([t('f_date'),t('f_meetingTitle'),t('f_beneficiaries')],itTrips.map(r=>[r.date,r.tripTitle,r.tripBenef]))}`:''}
+      ${itRamadan.length?`<div class="rep-sub" style="margin-top:22px">${t('r_ramadan')}</div>
+        ${rTbl([t('f_date'),t('f_meetingTitle'),t('f_beneficiaries')],itRamadan.map(r=>[r.date,r.ramadanTitle,r.ramadanBenef]))}`:''}
+      ${itJuraa.length?`<div class="rep-sub" style="margin-top:22px">${t('r_juraa')}</div>
+        ${rTbl([t('f_date'),t('f_meetingTitle'),t('f_presenter'),t('f_beneficiaries')],itJuraa.map(r=>[r.date,r.juraaTitle,r.juraaPresenter,r.juraaBenef]))}`:''}
+      ${itSchool.length?`<div class="rep-sub" style="margin-top:22px">${t('r_schooltours')}</div>
+        ${rTbl([t('f_date'),t('f_schoolName'),t('f_nationalities'),t('f_beneficiaries')],itSchool.map(r=>[r.date,r.schoolName,r.schoolNats,r.schoolBenef]))}`:''}
+      ${itPassport.length?`<div class="rep-sub" style="margin-top:22px">${t('r_passport')}</div>
+        ${rTbl([t('f_date'),t('f_programName'),t('f_meetPlace'),t('f_guestName'),t('f_guestNat'),t('f_beneficiaries')],itPassport.map(r=>[r.date,r.passProgram,r.passPlace,r.passGuest,r.passGuestNat,r.passBenef]))}`:''}${nestedTpls('initiatives',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_quality')}</h2><div class="rep-sub">${t('r_qualitySub')}</div>
       ${rTbl([t('f_date'),t('f_partType'),t('f_details')],quality.map(r=>[r.date,r.partType,r.details]))}${nestedTpls('quality',M)}</div>
+    <div class="rep-section"><h2 class="rep-title">${t('r_visits')}</h2>
+      ${rTbl([t('f_date'),t('f_visitor'),t('f_visitType'),t('f_participants'),t('f_visitDetails')],
+        visits.map(r=>[r.date,r.visitor,(r.visitType?t(/internal|داخل/i.test(r.visitType)?'vt_internal':'vt_external'):''),r.participants,r.visitDetails]))}${nestedTpls('visits',M)}</div>
     ${customReportSections(M)}
   </div>`;
 }
