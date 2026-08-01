@@ -740,15 +740,25 @@ const RT = {
   },
   applyEntry(e){
     const row = e.new && e.new.id ? e.new : e.old;
-    if(!row) return false;
+    if(!row || !row.id) return false;
     const section = (e.new&&e.new.section) || (e.old&&e.old.section);
-    if(!section) return false;
-    const bucket = CACHE[section];
-    // section may be an archived tpl bucket that doesn't exist yet
     if(e.eventType==='DELETE'){
-      if(bucket){ const i=bucket.findIndex(r=>r.id===row.id); if(i>-1){ bucket.splice(i,1); return true; } }
-      return false;
+      // DELETE payloads may not carry `section` (depends on replica identity),
+      // so if we don't know the section, sweep every bucket by id.
+      if(section && CACHE[section]){
+        const i=CACHE[section].findIndex(r=>r.id===row.id);
+        if(i>-1){ CACHE[section].splice(i,1); return true; }
+        return false;
+      }
+      let removed=false;
+      for(const k in CACHE){
+        if(!Array.isArray(CACHE[k])) continue;
+        const i=CACHE[k].findIndex(r=>r&&r.id===row.id);
+        if(i>-1){ CACHE[k].splice(i,1); removed=true; }
+      }
+      return removed;
     }
+    if(!section) return false;
     const rec = RT.toRec(e.new);
     if(!CACHE[section]){ CACHE[section]=[]; }
     const arr=CACHE[section];
@@ -1196,7 +1206,7 @@ async function doLogout(){ RT.stop(); await sb.auth.signOut(); SESSION=null; ren
 
 console.log('cloud auth loaded');
 /* ---------------- APP SHELL ---------------- */
-let PAGE='dashboard';
+let PAGE = localStorage.getItem('sfc_page') || 'dashboard';
 /* ---- clean line-icon set (stroke inherits currentColor) ---- */
 const ICONS={
   tplCustom:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12h6M12 9v6"/>',
@@ -1264,7 +1274,12 @@ function renderApp(){
       <div class="content" id="content"></div>
     </div>
   </div>`;
-  renderNav(); renderMonthSel(); go('dashboard');
+  renderNav(); renderMonthSel();
+  // restore last page if it's still valid & permitted; else dashboard
+  const valid=new Set();
+  navGroups().forEach(grp=>grp.items.forEach(([id])=>valid.add(id)));
+  const saved=localStorage.getItem('sfc_page');
+  go(valid.has(saved)?saved:'dashboard');
 }
 function renderNav(){
   document.getElementById('nav').innerHTML = navGroups().map(grp=>`
@@ -1286,7 +1301,7 @@ function toggleMenu(force){
   sb_.classList.toggle('open',open); bd.classList.toggle('open',open);
 }
 let pendingEntrance=false;
-function go(page){ const changed=(page!==PAGE); PAGE=page; pendingEntrance=changed; toggleMenu(false); renderNav(); renderPage(); }
+function go(page){ const changed=(page!==PAGE); PAGE=page; try{localStorage.setItem('sfc_page',page);}catch(e){} pendingEntrance=changed; toggleMenu(false); renderNav(); renderPage(); }
 function renderPage(){
   const c=document.getElementById('content');
   document.getElementById('pageTitle').textContent = PAGE.startsWith('tpl_') ? sectionTitle(PAGE) : t(PAGE);
