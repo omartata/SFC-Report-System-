@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نظام التقارير · جمعية أصدقاء السعودية</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1F5C38">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="تقارير SFC">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
 /* ============================================================
    SFC Report System — design tokens
@@ -363,6 +371,14 @@ body.dark select:focus-visible{
   <div class="modal-body" id="modalBody"></div>
 </div></div>
 <div class="toast" id="toast"></div>
+<script>
+/* PWA: register the network-first service worker (HTTPS only) */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* non-fatal: app still works */ });
+  });
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* =====================================================================
