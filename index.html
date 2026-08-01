@@ -219,11 +219,16 @@ body.dark .theme-btn .ico-moon{display:block}
   .backdrop.open{display:block}
 }
 @media print{
-  .sidebar,.topbar,.report-toolbar,.no-print{display:none!important}
+  @page{ margin:14mm 12mm; }
+  .sidebar,.topbar,.report-toolbar,.no-print,.status-meta{display:none!important}
   .content{padding:0;max-width:none}
   .report-sheet{border:0;box-shadow:none}
   .rep-section{page-break-inside:avoid}
+  .print-logo{display:block!important}
+  body{background:#fff!important}
 }
+.print-logo{display:none;text-align:right;padding:0 0 10px 0}
+html[dir="ltr"] .print-logo{text-align:left}
 </style>
 
 <style>
@@ -284,6 +289,70 @@ body.dark .theme-btn .ico-moon{display:block}
 .pill-draft{background:#eef0ed;color:#5c6b63}
 .pill-submitted{background:#f6efdb;color:#9a7420}
 .pill-approved{background:var(--green-soft);color:var(--green-deep)}
+
+/* ==================== MOTION POLISH ==================== */
+html{ scroll-behavior:smooth; }
+*{ -webkit-tap-highlight-color:transparent; }
+body{ -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
+/* vertical-scroll containers only (never horizontal table wrappers) */
+#content,.modal,.sidebar,.panel-body{ overscroll-behavior:contain; }
+
+/* themed scrollbars — kept ~10px so they stay grabbable */
+#content::-webkit-scrollbar,.modal::-webkit-scrollbar,.sidebar::-webkit-scrollbar{ width:10px;height:10px; }
+#content::-webkit-scrollbar-thumb,.modal::-webkit-scrollbar-thumb,.sidebar::-webkit-scrollbar-thumb{
+  background:var(--green); border-radius:8px; border:2px solid transparent; background-clip:padding-box; }
+#content::-webkit-scrollbar-track,.modal::-webkit-scrollbar-track,.sidebar::-webkit-scrollbar-track{ background:transparent; }
+
+/* keyboard focus only (mouse clicks stay clean) */
+:focus-visible{ outline:2px solid var(--green); outline-offset:2px; border-radius:6px; }
+body.dark :focus-visible{ outline-color:var(--gold); }
+input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--green); box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 22%,transparent); }
+body.dark input:focus-visible,
+body.dark textarea:focus-visible,
+body.dark select:focus-visible{
+  outline-color:var(--gold); box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 22%,transparent); }
+
+/* tactile press + gentle hover */
+.btn,.btn-primary,.btn-ghost,.btn-sm{ transition:transform .06s ease, background .15s ease, box-shadow .15s ease; }
+.btn:active,.btn-primary:active,.btn-ghost:active{ transform:translateY(1px); }
+.panel,.tbl tbody tr,.nav-btn,.sidebar button{ transition:background .15s ease, box-shadow .18s ease, transform .12s ease; }
+.tbl tbody tr:hover{ background:color-mix(in srgb,var(--green) 6%,transparent); }
+
+/* active-nav indicator eases rather than snaps */
+.sidebar button{ transition:background .2s ease, color .2s ease, box-shadow .2s ease; }
+
+/* entrance: content fade + inner stagger — fires ONLY when .entrance is present */
+@keyframes sfcFade{ from{opacity:0} to{opacity:1} }
+@keyframes sfcRise{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+#content.entrance{ animation:sfcFade .22s ease both; }
+#content.entrance .panel,
+#content.entrance .stat-card,
+#content.entrance .rep-section,
+#content.entrance .section-add{ animation:sfcRise .34s ease both; }
+#content.entrance .panel{ animation-delay:.04s }
+#content.entrance .stat-card:nth-child(2){ animation-delay:.03s }
+#content.entrance .stat-card:nth-child(3){ animation-delay:.06s }
+#content.entrance .stat-card:nth-child(4){ animation-delay:.09s }
+#content.entrance .stat-card:nth-child(5){ animation-delay:.12s }
+#content.entrance .stat-card:nth-child(6){ animation-delay:.15s }
+#content.entrance .stat-card:nth-child(7){ animation-delay:.18s }
+#content.entrance .rep-section:nth-child(2){ animation-delay:.04s }
+#content.entrance .rep-section:nth-child(3){ animation-delay:.08s }
+#content.entrance .rep-section:nth-child(4){ animation-delay:.12s }
+
+/* modal slide-in, suppressed on in-place refresh via .no-anim */
+.modal{ animation:sfcRise .2s ease both; }
+.modal.no-anim{ animation:none !important; }
+
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  #content.entrance,#content.entrance *{ animation:none !important; opacity:1 !important; transform:none !important; }
+  .modal{ animation:none !important; }
+}
 </style>
 
 </head>
@@ -340,9 +409,19 @@ const T = {
     ms_local:"تسويق محلي", ms_intl:"تسويق دولي",
     f_visitor:"الجهة/الزائر", f_visitType:"نوع الزيارة", f_participants:"المشاركين", f_visitDetails:"تفاصيل الزيارة",
     vt_internal:"داخلية", vt_external:"خارجية", r_visits:"الزيارات",
+    staffdev:"تطوير الموظفين", r_staffdev:"تطوير الموظفين", d_staffdev:"برامج تطوير الموظفين",
+    orgNameEn:"SAUDI FRIENDS ASSOCIATION",
+    rtApproved:"تم اعتماد تقرير {m}", rtSubmitted:"تم رفع تقرير {m} للاعتماد", rtReopened:"تم إعادة فتح تقرير {m}",
+    f_letterFile:"مرفق الخطاب (PDF)", fileHint:"ملف PDF فقط · الحد الأقصى 10 ميغابايت",
+    removeFile:"إزالة", fileRemoved:"تمت إزالة المرفق", uploading:"جارٍ رفع الملف…",
+    upFail:"تعذّر رفع الملف", openFail:"تعذّر فتح المرفق", pdfOnly:"يُسمح بملفات PDF فقط",
+    tooBig:"حجم الملف يتجاوز 10 ميغابايت", viewLetter:"عرض الخطاب",
+    f_progName:"اسم البرنامج", f_sdStart:"تاريخ البداية", f_sdEnd:"تاريخ النهاية",
+    f_sdDuration:"المدة", f_sdUnit:"الوحدة", su_days:"يوم", su_hours:"ساعة",
+    f_sdParticipants:"المشاركون", f_sdMode:"آلية الحضور", f_sdLocation:"الموقع", f_sdEntity:"اسم الجهة",
     f_letterCat:"فئة الخطاب", f_letterDetail:"تفاصيل الخطاب", f_entity:"الجهة",
     f_place:"المكان", f_meetType:"فئة الاجتماع", f_attendance:"عدد الحضور",
-    f_meetNature:"النوع", mn_planning:"اجتماع تخطيطي", mn_operational:"اجتماع تشغيلي",
+    f_meetNature:"النوع", mn_planning:"اجتماع تخطيطي", mn_operational:"اجتماع تشغيلي", mn_partnership:"اجتماع بحث الشراكات",
     lc_outgoing:"صادر", lc_incoming:"وارد",
     mt_inperson:"حضوري", mt_remote:"عن بعد",
     pf_x:"اكس", pf_instagram:"انستغرام", pf_tiktok:"تيك توك", pf_youtube:"يوتيوب", pf_linkedin:"لينكد إن",
@@ -427,9 +506,19 @@ const T = {
     ms_local:"Local", ms_intl:"International",
     f_visitor:"Visitor / Entity", f_visitType:"Visit Type", f_participants:"Participants", f_visitDetails:"Visit Details",
     vt_internal:"Internal", vt_external:"External", r_visits:"Visits",
+    staffdev:"Staff development", r_staffdev:"Staff development", d_staffdev:"Staff development programs",
+    orgNameEn:"SAUDI FRIENDS ASSOCIATION",
+    rtApproved:"{m} report approved", rtSubmitted:"{m} report submitted for approval", rtReopened:"{m} report reopened",
+    f_letterFile:"Letter attachment (PDF)", fileHint:"PDF only · max 10 MB",
+    removeFile:"Remove", fileRemoved:"Attachment removed", uploading:"Uploading file…",
+    upFail:"Upload failed", openFail:"Could not open attachment", pdfOnly:"PDF files only",
+    tooBig:"File exceeds 10 MB", viewLetter:"View letter",
+    f_progName:"Program name", f_sdStart:"Start date", f_sdEnd:"End date",
+    f_sdDuration:"Duration", f_sdUnit:"Unit", su_days:"Days", su_hours:"Hours",
+    f_sdParticipants:"Participants", f_sdMode:"Attendance mode", f_sdLocation:"Location", f_sdEntity:"Entity",
     f_letterCat:"Letter type", f_letterDetail:"Letter details", f_entity:"Entity",
     f_place:"Place", f_meetType:"Meeting type", f_attendance:"Attendance",
-    f_meetNature:"Type", mn_planning:"Planning Meeting", mn_operational:"Operational Meeting",
+    f_meetNature:"Type", mn_planning:"Planning Meeting", mn_operational:"Operational Meeting", mn_partnership:"Partnership Meeting",
     lc_outgoing:"Outgoing", lc_incoming:"Incoming",
     mt_inperson:"In-person", mt_remote:"Remote",
     pf_x:"X", pf_instagram:"Instagram", pf_tiktok:"TikTok", pf_youtube:"YouTube", pf_linkedin:"LinkedIn",
@@ -460,7 +549,7 @@ const T = {
     reportFor:"Monthly Report —", pickMonthReport:"Pick a specific month above to view its report",
     login:"Sign in", email:"Email", password:"Password",
     signIn:"Sign in", signOut:"Sign out", loginErr:"Wrong email or password", loginTitle:"SFC Report System",
-    loginSub:"SAUDI FRIENDSHIP · HOSPITALITY · CULTURE · TOURISM",
+    loginSub:"SAUDI FRIENDS ASSOCIATION · HOSPITALITY · CULTURE · TOURISM",
     loading:"Loading…", role_admin:"Admin", role_staff:"Staff",
     st_draft:"Draft", st_submitted:"Submitted", st_approved:"Approved",
     submitReport:"Submit report", approveReport:"Approve & lock", reopenReport:"Reopen",
@@ -506,8 +595,8 @@ const fmtMonth = ym => { if(!ym) return ''; const [y,m]=ym.split('-');
    In-memory CACHE mirrors the DB for synchronous rendering; every
    mutation writes to Supabase then refreshes the cache. entries table
    stores {section, entry_date, data{}}, so we flatten to Stage-1 shape. */
-const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[],visits:[], status:{}, templates:[] };
-const BUILTIN = ['daily','letters','meetings','media','finance','initiatives','quality','visits'];
+const CACHE = { daily:[],letters:[],meetings:[],media:[],finance:[],initiatives:[],quality:[],visits:[],staffdev:[], status:{}, templates:[] };
+const BUILTIN = ['daily','letters','meetings','media','finance','initiatives','quality','visits','staffdev'];
 
 const DB = {
   all(tbl){ return CACHE[tbl]||[]; },
@@ -594,6 +683,135 @@ async function audit(action,section,entryId,detail){
   catch(e){ /* non-fatal */ }
 }
 
+/* ==================== REALTIME ====================
+   Live updates for `entries` and `report_status`.
+   Design (adapted from the SFC Tasks app to this app's shape):
+   - surgical cache patching, never a full refetch on remote events
+   - 250ms batching so bulk changes cause ONE redraw
+   - never yank the form out from under someone mid-edit
+   - tab-focus resync fallback + unsubscribe on logout
+   - pure enhancement: if the socket never connects, the app still works
+   - we never toast the user about their OWN change (echo suppression)
+*/
+const RT = {
+  channel:null,
+  queue:[],          // pending remote events within the batch window
+  timer:null,
+  connected:false,
+  // transform a raw `entries` row into the flat cache record (mirror of DB.refresh)
+  toRec(row){ return { id:row.id, date:row.entry_date, _by:row.created_name||'', _byId:row.created_by, ...(row.data||{}) }; },
+  start(){
+    if(!sb || this.channel) return;
+    try{
+      this.channel = sb.channel('sfc_report_rt')
+        .on('postgres_changes',{event:'*',schema:'public',table:'entries'},      e=>RT.enqueue('entries',e))
+        .on('postgres_changes',{event:'*',schema:'public',table:'report_status'},e=>RT.enqueue('status',e))
+        .subscribe(status=>{ RT.connected = (status==='SUBSCRIBED'); });
+    }catch(err){ console.warn('realtime unavailable',err); }
+  },
+  stop(){
+    if(this.channel){ try{ sb.removeChannel(this.channel); }catch(e){} this.channel=null; }
+    this.queue=[]; if(this.timer){ clearTimeout(this.timer); this.timer=null; }
+    this.connected=false;
+  },
+  enqueue(kind,e){
+    // ignore my own echoes for notification purposes; still patch silently
+    this.queue.push({kind,e});
+    if(this.timer) return;
+    this.timer=setTimeout(()=>RT.flush(),250);
+  },
+  flush(){
+    this.timer=null;
+    const batch=this.queue.slice(); this.queue=[];
+    if(!batch.length) return;
+    let touchedData=false, touchedStatus=false;
+    for(const {kind,e} of batch){
+      if(kind==='entries'){ if(RT.applyEntry(e)) touchedData=true; }
+      else if(kind==='status'){ if(RT.applyStatus(e)) touchedStatus=true; }
+    }
+    if(!touchedData && !touchedStatus) return;
+    // Guard: if a form modal is open AND the user is actively typing, defer the redraw
+    if(touchedData && isTypingInModal()){
+      // re-queue a light resync after they finish; don't disturb the field now
+      RT.deferRedraw();
+      return;
+    }
+    RT.safeRedraw();
+  },
+  applyEntry(e){
+    const row = e.new && e.new.id ? e.new : e.old;
+    if(!row) return false;
+    const section = (e.new&&e.new.section) || (e.old&&e.old.section);
+    if(!section) return false;
+    const bucket = CACHE[section];
+    // section may be an archived tpl bucket that doesn't exist yet
+    if(e.eventType==='DELETE'){
+      if(bucket){ const i=bucket.findIndex(r=>r.id===row.id); if(i>-1){ bucket.splice(i,1); return true; } }
+      return false;
+    }
+    const rec = RT.toRec(e.new);
+    if(!CACHE[section]){ CACHE[section]=[]; }
+    const arr=CACHE[section];
+    const i=arr.findIndex(r=>r.id===rec.id);
+    if(i>-1) arr[i]=rec; else arr.push(rec);
+    return true;
+  },
+  applyStatus(e){
+    if(e.eventType==='DELETE'){ if(e.old&&e.old.month){ delete CACHE.status[e.old.month]; return true; } return false; }
+    const row=e.new; if(!row||!row.month) return false;
+    const prev=CACHE.status[row.month];
+    CACHE.status[row.month]=row;
+    // Action-relevant, and not my own action: a month locked/unlocked changes what I can do.
+    const mineId = (row.status==='approved'? row.approved_by : row.status==='submitted'? row.submitted_by : null);
+    const isMine = mineId && ME && mineId===ME.id;
+    const changed = !prev || prev.status!==row.status;
+    if(changed && !isMine){
+      if(row.status==='approved') RT.notify(t('rtApproved').replace('{m}',fmtMonth(row.month)));
+      else if(row.status==='submitted') RT.notify(t('rtSubmitted').replace('{m}',fmtMonth(row.month)));
+      else if(row.status==='draft' && prev) RT.notify(t('rtReopened').replace('{m}',fmtMonth(row.month)));
+    }
+    return true;
+  },
+  notify(msg){ try{ toast(msg,'ok'); }catch(e){} },
+  safeRedraw(){
+    // Re-render current page WITHOUT triggering entrance animation (see Part 2 gating).
+    try{ renderPage(); renderMonthSel(); }catch(err){ console.warn(err); }
+    // If a modal is open (not typing), refresh its underlying data view silently — the
+    // modal itself is an add/edit form bound to a snapshot, so we leave the open form intact.
+  },
+  deferRedraw(){
+    // apply once the user leaves the field / closes the modal
+    if(RT._deferBound) return; RT._deferBound=true;
+    const done=()=>{ RT._deferBound=false; document.removeEventListener('focusout',onOut,true); RT.safeRedraw(); };
+    const onOut=()=>{ if(!isTypingInModal()) done(); };
+    document.addEventListener('focusout',onOut,true);
+    // hard fallback so a redraw can't be starved forever
+    setTimeout(()=>{ if(RT._deferBound) done(); }, 4000);
+  }
+};
+
+function isTypingInModal(){
+  const bg=document.getElementById('modalBg');
+  if(!bg || !bg.classList.contains('open')) return false;
+  const a=document.activeElement;
+  if(!a) return false;
+  const tag=(a.tagName||'').toLowerCase();
+  const typing = tag==='input' || tag==='textarea' || tag==='select' || a.isContentEditable;
+  return typing && bg.contains(a);
+}
+
+// Tab-focus resync fallback: if the socket dropped while hidden, pull fresh once on return.
+let _rtFocusTimer=null;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible') return;
+  if(!SESSION) return;
+  if(_rtFocusTimer) clearTimeout(_rtFocusTimer);
+  _rtFocusTimer=setTimeout(async ()=>{
+    // only resync if we think realtime isn't currently connected (cheap safety net)
+    if(!RT.connected){ try{ await DB.refresh(); renderPage(); }catch(e){} }
+  }, 400);
+});
+
 let CURRENT_MONTH = localStorage.getItem('sfc_month') || '';
 const inMonth = rows => CURRENT_MONTH ? rows.filter(r=>monthOf(r.date)===CURRENT_MONTH) : rows;
 function allMonths(){
@@ -622,12 +840,13 @@ const SECTIONS = {
     ]
   },
   letters:{
-    icon:'✉️', tableCols:['date','letterCat','letterDetail','entity'],
+    icon:'✉️', tableCols:['date','letterCat','letterDetail','entity','letterFile'],
     fields:[
       {k:'date',l:'f_date',type:'date',req:true},
       {k:'letterCat',l:'f_letterCat',type:'select',opts:['outgoing|lc_outgoing','incoming|lc_incoming']},
       {k:'letterDetail',l:'f_letterDetail',type:'text',req:true},
       {k:'entity',l:'f_entity',type:'text',req:true},
+      {k:'letterFile',l:'f_letterFile',type:'file'},
     ]
   },
   meetings:{
@@ -637,7 +856,7 @@ const SECTIONS = {
       {k:'place',l:'f_place',type:'text'},
       {k:'entity',l:'f_entity',type:'text',req:true},
       {k:'meetType',l:'f_meetType',type:'select',opts:['inperson|mt_inperson','remote|mt_remote']},
-      {k:'meetNature',l:'f_meetNature',type:'select',opts:['planning|mn_planning','operational|mn_operational']},
+      {k:'meetNature',l:'f_meetNature',type:'select',opts:['planning|mn_planning','operational|mn_operational','partnership|mn_partnership']},
       {k:'attendance',l:'f_attendance',type:'number'},
       {k:'hours',l:'f_hours',type:'number'},
       {k:'details',l:'f_details',type:'text'},
@@ -729,6 +948,21 @@ const SECTIONS = {
       {k:'visitDetails',l:'f_visitDetails',type:'long'},
     ]
   },
+  staffdev:{
+    icon:'🎓', tableCols:['date','progName','sdStart','sdEnd','sdDuration','sdMode','sdEntity'],
+    fields:[
+      {k:'date',l:'f_date',type:'date',req:true},
+      {k:'progName',l:'f_progName',type:'text',req:true},
+      {k:'sdStart',l:'f_sdStart',type:'date'},
+      {k:'sdEnd',l:'f_sdEnd',type:'date'},
+      {k:'sdDuration',l:'f_sdDuration',type:'number'},
+      {k:'sdUnit',l:'f_sdUnit',type:'select',opts:['days|su_days','hours|su_hours']},
+      {k:'sdParticipants',l:'f_sdParticipants',type:'long'},
+      {k:'sdMode',l:'f_sdMode',type:'select',opts:['inperson|mt_inperson','remote|mt_remote']},
+      {k:'sdLocation',l:'f_sdLocation',type:'text',show:'inperson',showKey:'sdMode'},
+      {k:'sdEntity',l:'f_sdEntity',type:'text'},
+    ]
+  },
 };
 
 /* ---- resolver: built-in key OR 'tpl_<id>' -> section definition ---- */
@@ -755,6 +989,19 @@ function getSection(tbl){
 }
 /* label helper aware of template fields */
 function fieldLabel(tbl,f){ return f.tplField ? tplLabel(f.tplField) : t(f.l); }
+function meetNatureKey(v){
+  v=String(v||'');
+  if(!v) return null;
+  if(/partner|شراك/i.test(v)) return 'mn_partnership';
+  if(/operational|تشغيل/i.test(v)) return 'mn_operational';
+  if(/planning|تخطيط/i.test(v)) return 'mn_planning';
+  return null;
+}
+function attachLink(f){
+  if(!f||!f.path) return '<span style="color:#c3c8c3">—</span>';
+  const p=String(f.path).replace(/"/g,'&quot;');
+  return '<a href="#" data-p="'+p+'" onclick="openAttach(this.dataset.p);return false" style="color:var(--green);font-weight:700;text-decoration:none">'+CLIP_ICON+' '+t('viewLetter')+'</a>';
+}
 function sectionTitle(tbl){
   const sec=getSection(tbl);
   if(sec && sec.tpl) return tplTitle(sec.tpl);
@@ -804,10 +1051,13 @@ function cellVal(tbl,col,r){
   if(col==='date') return r.date||'';
   if(col==='marketScope') return r.marketScope? `<span class="chip b">${t(/local|محلي/i.test(r.marketScope)?'ms_local':'ms_intl')}</span>` : '<span style="color:#c3c8c3">—</span>';
   if(col==='visitType') return r.visitType? `<span class="chip b">${t(/internal|داخل/i.test(r.visitType)?'vt_internal':'vt_external')}</span>` : '<span style="color:#c3c8c3">—</span>';
-  if(col==='meetNature') return r.meetNature? `<span class="chip b">${t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='meetNature'){ const k=meetNatureKey(r.meetNature); return k? `<span class="chip b">${t(k)}</span>` : '<span style="color:#c3c8c3">—</span>'; }
   if(col==='letterCat'){ const k=/out|صادر/i.test(r.letterCat||'')?'lc_outgoing':(/in|وارد/i.test(r.letterCat||'')?'lc_incoming':null); return k?`<span class="chip b">${t(k)}</span>`:(r.letterCat||'<span style="color:#c3c8c3">—</span>'); }
   if(col==='meetType'){ const k=/person|حضور/i.test(r.meetType||'')?'mt_inperson':(/remote|بعد/i.test(r.meetType||'')?'mt_remote':null); return k?`<span class="chip b">${t(k)}</span>`:(r.meetType||'<span style="color:#c3c8c3">—</span>'); }
   if(col==='platform'){ return r.platform? platLabel(r.platform) : '<span style="color:#c3c8c3">—</span>'; }
+  if(col==='letterFile'){ return attachLink(r.letterFile); }
+  if(col==='sdMode'){ const k=/person|حضور/i.test(r.sdMode||'')?'mt_inperson':(/remote|بعد/i.test(r.sdMode||'')?'mt_remote':null); return k?`<span class="chip b">${t(k)}</span>`:'<span style="color:#c3c8c3">—</span>'; }
+  if(col==='sdDuration'){ if(r.sdDuration===''||r.sdDuration==null) return '<span style="color:#c3c8c3">—</span>'; return `${r.sdDuration} ${t(/hour|ساع/i.test(r.sdUnit||'')?'su_hours':'su_days')}`; }
   if(Array.isArray(r[col])) return r[col].map(x=>`<span class="chip b">${x}</span>`).join(' ');
   return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
 }
@@ -854,10 +1104,13 @@ function cellVal(tbl,col,r){
   if(col==='date') return r.date||'';
   if(col==='marketScope') return r.marketScope? `<span class="chip b">${t(/local|محلي/i.test(r.marketScope)?'ms_local':'ms_intl')}</span>` : '<span style="color:#c3c8c3">—</span>';
   if(col==='visitType') return r.visitType? `<span class="chip b">${t(/internal|داخل/i.test(r.visitType)?'vt_internal':'vt_external')}</span>` : '<span style="color:#c3c8c3">—</span>';
-  if(col==='meetNature') return r.meetNature? `<span class="chip b">${t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational')}</span>` : '<span style="color:#c3c8c3">—</span>';
+  if(col==='meetNature'){ const k=meetNatureKey(r.meetNature); return k? `<span class="chip b">${t(k)}</span>` : '<span style="color:#c3c8c3">—</span>'; }
   if(col==='letterCat'){ const k=/out|صادر/i.test(r.letterCat||'')?'lc_outgoing':(/in|وارد/i.test(r.letterCat||'')?'lc_incoming':null); return k?`<span class="chip b">${t(k)}</span>`:(r.letterCat||'<span style="color:#c3c8c3">—</span>'); }
   if(col==='meetType'){ const k=/person|حضور/i.test(r.meetType||'')?'mt_inperson':(/remote|بعد/i.test(r.meetType||'')?'mt_remote':null); return k?`<span class="chip b">${t(k)}</span>`:(r.meetType||'<span style="color:#c3c8c3">—</span>'); }
   if(col==='platform'){ return r.platform? platLabel(r.platform) : '<span style="color:#c3c8c3">—</span>'; }
+  if(col==='letterFile'){ return attachLink(r.letterFile); }
+  if(col==='sdMode'){ const k=/person|حضور/i.test(r.sdMode||'')?'mt_inperson':(/remote|بعد/i.test(r.sdMode||'')?'mt_remote':null); return k?`<span class="chip b">${t(k)}</span>`:'<span style="color:#c3c8c3">—</span>'; }
+  if(col==='sdDuration'){ if(r.sdDuration===''||r.sdDuration==null) return '<span style="color:#c3c8c3">—</span>'; return `${r.sdDuration} ${t(/hour|ساع/i.test(r.sdUnit||'')?'su_hours':'su_days')}`; }
   if(Array.isArray(r[col])) return r[col].map(x=>`<span class="chip b">${x}</span>`).join(' ');
   return (r[col]!=null && r[col]!=='')? r[col] : '<span style="color:#c3c8c3">—</span>';
 }
@@ -937,8 +1190,9 @@ async function onLogin(session){
   ME = { id:session.user.id, name:(prof?.full_name)||session.user.email, role:(prof?.role)||'staff' };
   await DB.refresh();
   renderApp();
+  RT.start();
 }
-async function doLogout(){ await sb.auth.signOut(); SESSION=null; renderLogin(); }
+async function doLogout(){ RT.stop(); await sb.auth.signOut(); SESSION=null; renderLogin(); }
 
 console.log('cloud auth loaded');
 /* ---------------- APP SHELL ---------------- */
@@ -957,6 +1211,7 @@ const ICONS={
   initiatives:'<path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2 0-2.8a2 2 0 0 0-3 .8z"/><path d="M12 15l-3-3a11 11 0 0 1 8-8c1.5 0 3 .3 3 .3s.3 1.5.3 3a11 11 0 0 1-8 8z"/><path d="M9 12H4s.5-2.8 2-4 5 0 5 0M12 15v5s2.8-.5 4-2 0-5 0-5"/>',
   quality:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"/>',
   visits:'<path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 12h.01"/>',
+  staffdev:'<path d="M22 10L12 5 2 10l10 5 10-5zM6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/>',
   users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
   audit:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
 };
@@ -965,7 +1220,7 @@ function navGroups(){
   const g=[
     {g:'nav_main', items:[['dashboard','dashboard'],['report','report']]},
     {g:'nav_data', items:[['daily','daily'],['letters','letters'],['meetings','meetings'],
-        ['media','media'],['finance','finance'],['initiatives','initiatives'],['quality','quality'],['visits','visits'],
+        ['media','media'],['finance','finance'],['initiatives','initiatives'],['quality','quality'],['visits','visits'],['staffdev','staffdev'],
         ...DB.templates().map(tp=>['tpl_'+tp.id,'tplCustom'])]},
   ];
   if(ME.role==='admin') g.push({g:'nav_admin', items:[['templates','templates'],['users','users'],['audit','audit']]});
@@ -979,7 +1234,7 @@ function renderApp(){
         <svg class="mark" viewBox="0 0 40 40"><circle cx="20" cy="11" r="5" fill="#7fc08e"/>
           <path d="M8 34c0-7 5-12 12-12s12 5 12 12" stroke="#7fc08e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
           <circle cx="9" cy="15" r="3.4" fill="#4a9c5c"/><circle cx="31" cy="15" r="3.4" fill="#c79a3d"/></svg>
-        <div><h1>${t('brand')}</h1><div class="sub">SAUDI FRIENDSHIP</div></div>
+        <div><h1>${t('brand')}</h1><div class="sub">SAUDI FRIENDS ASSOCIATION</div></div>
       </div></div>
       <nav class="nav" id="nav"></nav>
       <div class="sidebar-foot">
@@ -1030,17 +1285,28 @@ function toggleMenu(force){
   const open = force===undefined? !sb_.classList.contains('open') : force;
   sb_.classList.toggle('open',open); bd.classList.toggle('open',open);
 }
-function go(page){ PAGE=page; toggleMenu(false); renderNav(); renderPage(); }
+let pendingEntrance=false;
+function go(page){ const changed=(page!==PAGE); PAGE=page; pendingEntrance=changed; toggleMenu(false); renderNav(); renderPage(); }
 function renderPage(){
   const c=document.getElementById('content');
   document.getElementById('pageTitle').textContent = PAGE.startsWith('tpl_') ? sectionTitle(PAGE) : t(PAGE);
   renderMonthSel();
+  const async_ = (PAGE==='users'||PAGE==='audit');
   if(PAGE==='dashboard') c.innerHTML=viewDashboard();
   else if(PAGE==='report') c.innerHTML=viewReport();
-  else if(PAGE==='users') viewUsers().then(h=>c.innerHTML=h);
-  else if(PAGE==='audit') viewAudit().then(h=>c.innerHTML=h);
+  else if(PAGE==='users') viewUsers().then(h=>{c.innerHTML=h; playEntrance(c);});
+  else if(PAGE==='audit') viewAudit().then(h=>{c.innerHTML=h; playEntrance(c);});
   else if(PAGE==='templates') c.innerHTML=viewTemplates();
   else c.innerHTML=viewSection(PAGE);
+  if(!async_) playEntrance(c);
+}
+function playEntrance(c){
+  if(!pendingEntrance){ return; }
+  pendingEntrance=false;
+  c.classList.remove('entrance'); void c.offsetWidth; c.classList.add('entrance');
+  const clear=()=>{ c.classList.remove('entrance'); c.removeEventListener('animationend',clear); };
+  // clear after the cascade so it never lingers into a later re-render
+  setTimeout(clear, 700);
 }
 
 /* ---------------- SECTION PAGE ---------------- */
@@ -1078,8 +1344,28 @@ function rowActions(tbl,r,locked){
   return h || `<span style="font-size:11px;color:#b7bdb8">${t('notYours')}</span>`;
 }
 
+/* ---------------- ATTACHMENTS ---------------- */
+async function openAttach(path){
+  if(!path) return;
+  try{
+    const {data,error}=await sb.storage.from('letters').createSignedUrl(path,60*10);
+    if(error||!data){ toast(t('openFail'),'err'); return; }
+    window.open(data.signedUrl,'_blank');
+  }catch(e){ toast(t('openFail'),'err'); }
+}
+function clearAttach(k){
+  const hid=document.querySelector(`[data-f="${k}"]`);
+  if(hid) hid.value='';
+  const inp=document.querySelector(`[data-file="${k}"]`);
+  if(inp) inp.value='';
+  const box=inp&&inp.parentElement&&inp.parentElement.querySelector('a.chip');
+  if(box&&box.parentElement) box.parentElement.remove();
+  toast(t('fileRemoved'),'ok');
+}
+
 /* ---------------- FORM ---------------- */
 let FORM_STATE={tbl:null,id:null};
+const CLIP_ICON='📎';
 function openForm(tbl,rec){
   FORM_STATE={tbl,id:rec?rec.id:null};
   const sec=getSection(tbl); if(!sec){toast('section?','err');return '';}
@@ -1089,17 +1375,29 @@ function openForm(tbl,rec){
     <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
     <button class="btn btn-primary" id="saveBtn" onclick="saveForm()">${t('save')}</button></div>`;
   applyConditional(tbl,rec);
-  document.getElementById('modalBg').classList.add('open');
+  openModalBg();
 }
 function fieldHtml(f,rec){
   const v = rec ? (rec[f.k]??'') : (f.type==='date'? new Date().toISOString().slice(0,10):'');
   const full = (f.type==='text'&&['letterDetail','details','notes','recipient'].includes(f.k))||f.type==='multi'||f.type==='long';
-  const wrap=c=>`<div class="field ${full?'full':''}" data-show="${f.show||''}"><label>${fieldLabel(FORM_STATE.tbl,f)}${f.req?' *':''}</label>${c}</div>`;
+  const wrap=c=>`<div class="field ${full?'full':''}" data-show="${f.show||''}" data-showkey="${f.showKey||''}"><label>${fieldLabel(FORM_STATE.tbl,f)}${f.req?' *':''}</label>${c}</div>`;
   if(f.type==='select'||f.type==='yesno'){
     const optList = f.type==='yesno' ? (LANG==='ar'?['نعم','لا']:['Yes','No']) : f.opts;
     const opts=optList.map(o=>{const[val,lk]=String(o).includes('|')?o.split('|'):[o,null];
       return `<option value="${val}" ${v==val?'selected':''}>${lk?t(lk):o}</option>`;}).join('');
     return wrap(`<select data-f="${f.k}" onchange="applyConditional('${FORM_STATE.tbl}')"><option value="">—</option>${opts}</select>`);
+  }
+  if(f.type==='file'){
+    const cur=(v && typeof v==='object')?v:null;
+    const info = cur ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+      + '<a href="#" data-p="'+cur.path+'" onclick="openAttach(this.dataset.p);return false" class="chip b" style="text-decoration:none">'
+      + CLIP_ICON + ' ' + (cur.name||'PDF') + '</a>'
+      + '<button type="button" class="btn-danger-ghost" onclick="clearAttach(\''+f.k+'\')">'+t('removeFile')+'</button>'
+      + '</div>' : '';
+    return wrap(info
+      + '<input type="file" accept="application/pdf" data-file="'+f.k+'">'
+      + '<div style="font-size:11.5px;color:var(--ink-soft);margin-top:4px">'+t('fileHint')+'</div>'
+      + '<input type="hidden" data-f="'+f.k+'" value="'+(cur?String(JSON.stringify(cur)).replace(/"/g,'&quot;'):'')+'">');
   }
   if(f.type==='multi'){
     const arr=Array.isArray(v)?v:(v?[v]:[]);
@@ -1114,23 +1412,48 @@ function fieldHtml(f,rec){
   return wrap(`<input type="${type}" data-f="${f.k}" value="${String(v).replace(/"/g,'&quot;')}">`);
 }
 function applyConditional(tbl){
-  const typeField=tbl==='finance'?'finType':(tbl==='initiatives'?'initType':null);
-  if(!typeField) return;
-  const cur=document.querySelector(`[data-f="${typeField}"]`)?.value||'';
+  const typeField=tbl==='finance'?'finType':(tbl==='initiatives'?'initType':(tbl==='staffdev'?'sdMode':null));
   document.querySelectorAll('#formGrid .field[data-show]').forEach(el=>{
-    const s=el.getAttribute('data-show'); el.style.display=(!s||s===cur)?'flex':'none'; });
+    const s=el.getAttribute('data-show');
+    if(!s){ el.style.display='flex'; return; }
+    const key=el.getAttribute('data-showkey')||typeField;
+    if(!key){ el.style.display='flex'; return; }
+    const cur=document.querySelector(`[data-f="${key}"]`)?.value||'';
+    el.style.display=(s===cur)?'flex':'none';
+  });
 }
 async function saveForm(){
   const {tbl,id}=FORM_STATE; const sec=getSection(tbl); if(!sec){toast('section?','err');return '';}
   const rec=id?{...DB.all(tbl).find(r=>r.id===id)}:{};
   for(const f of sec.fields){
     if(f.type==='multi') rec[f.k]=[...document.querySelectorAll(`[data-multi="${f.k}"]:checked`)].map(c=>c.value);
+    else if(f.type==='file'){
+      const hid=document.querySelector(`[data-f="${f.k}"]`);
+      let keep=null;
+      try{ keep = hid && hid.value ? JSON.parse(hid.value) : null; }catch(e){ keep=null; }
+      rec[f.k]=keep;
+    }
     else { const el=document.querySelector(`[data-f="${f.k}"]`);
       if(el) rec[f.k]= f.type==='number'? (el.value===''?'':Number(el.value)) : el.value; }
   }
   const miss=sec.fields.find(f=>f.req && (rec[f.k]===''||rec[f.k]==null));
   if(miss){ toast(t(miss.l),'err'); return; }
   document.getElementById('saveBtn').disabled=true;
+  // upload any newly chosen files
+  for(const f of sec.fields){
+    if(f.type!=='file') continue;
+    const inp=document.querySelector(`[data-file="${f.k}"]`);
+    const file=inp && inp.files && inp.files[0];
+    if(!file) continue;
+    if(file.type!=='application/pdf'){ toast(t('pdfOnly'),'err'); document.getElementById('saveBtn').disabled=false; return; }
+    if(file.size > 10*1024*1024){ toast(t('tooBig'),'err'); document.getElementById('saveBtn').disabled=false; return; }
+    toast(t('uploading'),'ok');
+    const safe=file.name.replace(/[^\w.\-]+/g,'_');
+    const path=`${tbl}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safe}`;
+    const up=await sb.storage.from('letters').upload(path,file,{contentType:'application/pdf',upsert:false});
+    if(up.error){ toast(t('upFail')+': '+up.error.message,'err'); document.getElementById('saveBtn').disabled=false; return; }
+    rec[f.k]={path, name:file.name, size:file.size};
+  }
   const ok=await DB.upsert(tbl,rec);
   if(ok){ closeModal(); toast(t('saved'),'ok'); renderMonthSel(); renderPage(); }
   else document.getElementById('saveBtn').disabled=false;
@@ -1138,7 +1461,14 @@ async function saveForm(){
 function editRow(tbl,id){ openForm(tbl,DB.all(tbl).find(r=>r.id===id)); }
 async function delRow(tbl,id){ if(!confirm(t('confirmDel')))return;
   if(await DB.remove(tbl,id)){ toast(t('deleted')); renderMonthSel(); renderPage(); } }
-function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+function openModalBg(){
+  const bg=document.getElementById('modalBg');
+  const modal=bg.querySelector('.modal');
+  const already=bg.classList.contains('open');
+  if(modal){ modal.classList.toggle('no-anim', already); }  // fresh open animates; in-place refresh does not
+  bg.classList.add('open');
+}
+function closeModal(){ const bg=document.getElementById('modalBg'); bg.classList.remove('open'); const m=bg.querySelector('.modal'); if(m) m.classList.remove('no-anim'); }
 
 console.log('cloud ui2 loaded');
 /* ---------------- DASHBOARD ---------------- */
@@ -1147,7 +1477,8 @@ function viewDashboard(){
   const daily=inMonth(DB.all('daily')), letters=inMonth(DB.all('letters')),
         meetings=inMonth(DB.all('meetings')), finance=inMonth(DB.all('finance')),
         media=inMonth(DB.all('media')), init=inMonth(DB.all('initiatives')),
-        quality=inMonth(DB.all('quality')), visits=inMonth(DB.all('visits'));
+        quality=inMonth(DB.all('quality')), visits=inMonth(DB.all('visits')),
+        staffdev=inMonth(DB.all('staffdev'));
   const posts=sum(media,r=>Number(r.posts)||0);
   const sales=finance.filter(r=>r.finType==='sale');
   const salesTotal=sum(sales,r=>(r.count||0)*(r.price||0));
@@ -1163,7 +1494,7 @@ function viewDashboard(){
     ${stat('d_letters',letters.length,'')}${stat('d_meetings',meetings.length,'b')}
     ${stat('d_posts',posts,'')}${stat('d_finance',finance.length,'b')}
     ${stat('d_init',init.length,'')}${stat('d_quality',quality.length,'b')}
-    ${stat('d_visits',visits.length,'')}
+    ${stat('d_visits',visits.length,'')}${stat('d_staffdev',staffdev.length,'b')}
     ${stat('d_sales',salesTotal.toLocaleString(),'g')}
     ${stat('d_benef',sum(benef,r=>parseInt(r.value)||0),'g')}</div>
   <div class="two-col">
@@ -1201,6 +1532,8 @@ function viewReport(){
   const isAr=s=>/[\u0600-\u06FF]/.test(s||'');
   const scopeOf=r=> r.marketScope ? (/local|محلي/i.test(r.marketScope)?'local':'intl') : (isAr(r.recipient)?'local':'intl');
   const scopeLabel=r=> r.marketScope ? t(/local|محلي/i.test(r.marketScope)?'ms_local':'ms_intl') : '';
+  const sdDur=r=>{ if(r.sdDuration===''||r.sdDuration==null) return ''; return `${r.sdDuration} ${t(/hour|ساع/i.test(r.sdUnit||'')?'su_hours':'su_days')}`; };
+  const sdModeLabel=r=> r.sdMode ? t(/person|حضور/i.test(r.sdMode)?'mt_inperson':'mt_remote') : '';
   const commLocal=daily.filter(r=>scopeOf(r)==='local'), commIntl=daily.filter(r=>scopeOf(r)==='intl');
   const grants=finance.filter(r=>r.finType==='grant'),reports=finance.filter(r=>r.finType==='report'),partners=finance.filter(r=>r.finType==='partner'),
         inkind=finance.filter(r=>r.finType==='inkind'),
@@ -1234,17 +1567,25 @@ function viewReport(){
   </div>
   ${meta}
   <div class="report-sheet" id="reportSheet">
+    <div class="print-logo">
+      <svg width="66" height="66" viewBox="0 0 40 40" aria-label="SFC">
+        <path d="M8 34c0-7 5-12 12-12s12 5 12 12" stroke="#3f8f52" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <circle cx="9"  cy="15" r="3.4" fill="#4a9c5c"/>
+        <circle cx="20" cy="11" r="5"   fill="#7fc08e"/>
+        <circle cx="31" cy="15" r="3.4" fill="#c79a3d"/>
+      </svg>
+    </div>
     <div class="rep-section" style="text-align:center;padding:40px">
       <h1 class="rep-title" style="font-size:30px">${t('reportFor')}<br>${fmtMonth(M)}</h1>
-      <div style="color:var(--green);font-weight:800;letter-spacing:2px;margin-top:8px">SAUDI FRIENDSHIP</div>
+      <div style="color:var(--green);font-weight:800;letter-spacing:2px;margin-top:8px">${t('orgNameEn')}</div>
       <div style="color:var(--ink-soft);font-size:12px;letter-spacing:3px">HOSPITALITY · CULTURE · TOURISM</div>
     </div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_meetings')}</div>
       ${rTbl([t('f_date'),t('f_place'),t('f_entity'),t('f_meetType'),t('f_meetNature'),t('f_attendance'),t('f_hours'),t('f_details')],
-        meetings.map(r=>[r.date,r.place,r.entity,(r.meetType?t(/person|حضور/i.test(r.meetType)?'mt_inperson':'mt_remote'):''),(r.meetNature?t(/planning|تخطيط/i.test(r.meetNature)?'mn_planning':'mn_operational'):''),r.attendance,r.hours,r.details]))}${nestedTpls('meetings',M)}</div>
+        meetings.map(r=>[r.date,r.place,r.entity,(r.meetType?t(/person|حضور/i.test(r.meetType)?'mt_inperson':'mt_remote'):''),(meetNatureKey(r.meetNature)?t(meetNatureKey(r.meetNature)):''),r.attendance,r.hours,r.details]))}${nestedTpls('meetings',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_admin')}</h2><div class="rep-sub">${t('r_letters')}</div>
-      ${rTbl([t('f_date'),t('f_letterCat'),t('f_letterDetail'),t('f_entity')],
-        letters.map(r=>[r.date,(r.letterCat?t(/out|صادر/i.test(r.letterCat)?'lc_outgoing':'lc_incoming'):''),r.letterDetail,r.entity]))}${nestedTpls('letters',M)}</div>
+      ${rTbl([t('f_date'),t('f_letterCat'),t('f_letterDetail'),t('f_entity'),t('f_letterFile')],
+        letters.map(r=>[r.date,(r.letterCat?t(/out|صادر/i.test(r.letterCat)?'lc_outgoing':'lc_incoming'):''),r.letterDetail,r.entity,attachLink(r.letterFile)]))}${nestedTpls('letters',M)}</div>
     <div class="rep-section"><h2 class="rep-title">${t('r_comm')}</h2><div class="rep-sub">${t('r_commLocal')}</div>
       ${rTbl([t('f_date'),t('f_marketScope'),t('f_recipient'),t('f_count'),t('f_channel'),t('f_details')],
         commLocal.map(r=>[r.date,scopeLabel(r),r.recipient,r.count,(Array.isArray(r.channel)?r.channel.join(', '):r.channel),r.notes]))}</div>
@@ -1414,7 +1755,7 @@ function openTplEditor(id){
                 : {title_ar:'',title_en:'',parent:null,fields:[]};
   document.getElementById('modalTitle').textContent = id? t('editTemplate'):t('newTemplate');
   drawTplEditor();
-  document.getElementById('modalBg').classList.add('open');
+  openModalBg();
 }
 function drawTplEditor(){
   const e=TPL_EDIT;
@@ -1497,7 +1838,12 @@ function csvEscape(v){v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.rep
 function exportCsv(tbl){
   const rows=inMonth(DB.all(tbl)); const sec=getSection(tbl); if(!sec){toast('section?','err');return '';} const keys=sec.fields.map(f=>f.k);
   const lines=[keys.map(k=>colLabel(tbl,k)).map(csvEscape).join(',')];
-  rows.forEach(r=>lines.push(keys.map(k=>csvEscape(Array.isArray(r[k])?r[k].join(' | '):r[k])).join(',')));
+  rows.forEach(r=>lines.push(keys.map(k=>{
+    let v=r[k];
+    if(Array.isArray(v)) v=v.join(' | ');
+    else if(v && typeof v==='object') v = v.name || v.path || '';
+    return csvEscape(v);
+  }).join(',')));
   const blob=new Blob(["\uFEFF"+lines.join('\n')],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=`SFC_${tbl}${CURRENT_MONTH?'_'+CURRENT_MONTH:''}.csv`;a.click();
@@ -1512,6 +1858,12 @@ function toast(msg,cls=''){ const el=document.getElementById('toast'); if(!el)re
   el.textContent=msg; el.className='toast show '+cls;
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.className='toast '+cls,2600); }
 document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const bg=document.getElementById('modalBg');
+  if(bg && bg.classList.contains('open')){ closeModal(); return; }
+  if(typeof toggleMenu==='function'){ const sb=document.querySelector('.sidebar.open'); if(sb){ toggleMenu(false); } }
+});
 
 boot();
 console.log('cloud booted');
